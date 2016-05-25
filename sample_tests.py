@@ -1,5 +1,4 @@
 import unittest
-import datetime
 from prettyunit import PrettyUnit
 
 
@@ -55,13 +54,13 @@ if __name__ == '__main__':
 	name, suite = PU.suite("test_suite", BaseTest1, BaseTest2)
 
 	# Start tests
-	timestamp = datetime.datetime.now()
 	results = unittest.TextTestRunner().run(suite)
 
 	# Populate UC dictionary and generate json
 	PU.populateJson(name, suite._tests)
-	PU.addResultsJson(results, timestamp)
+	PU.addResultsJson(results)
 	json_results = PU.generateJson()
 	print json_results
+	PU.generateJsonAndSave('/Users/andrewscott/Desktop/')
 
 
