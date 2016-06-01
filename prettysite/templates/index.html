@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+ <!--Graphs-->
+{% block graphs %}
+    <div class="graph" id="graphs">
+        <div class="grid grid-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <h6>Timeline</h6>
+                    <div class="graphbox">
+                        <canvas id="TimeLineGraph"></canvas>
+                        <script>fitToContainer(document.getElementById('TimeLineGraph'));</script>
+                        <script>
+                            TimeLine([1,2,3,2,1]);
+                        </script>
+                    </div></div>
+            </div>
+            <div class="row" id="SuiteResults">
+                <div class="col-6">
+                    <h6>Summary</h6>
+                    <div class="graphbox">
+                    <canvas id="SummaryChart"></canvas>
+                        <script>fitToContainer(document.getElementById('SummaryChart'));</script>
+                        <script>
+                            SummaryBar([15,2,2,3]);
+                        </script>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <h6>Suite</h6>
+                    <div class="graphbox">
+                        <canvas id="SuitePieChart"></canvas>
+                        <script>fitToContainer(document.getElementById('SuitePieChart'));</script>
+                        <script>
+                            SuitePie([1,1,2,3]);
+                        </script>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <h6>Test Case</h6>
+                    <div class="graphbox">
+                        <canvas id="CasePieChart"></canvas>
+                        <script>fitToContainer(document.getElementById('CasePieChart'));</script>
+                        <script>
+                            CasePie([4,1,2,1]);
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var isIndex = window.location.pathname;
+        if (isIndex == "/") {
+            document.getElementById("SuiteResults").style.visibility = "hidden";
+            document.getElementById("graphs").style.height = '250px';
+        };
+    </script>
+{% endblock %}
+
+{% block results %}
+ <div class="results">
+    <div class="result-list">
+    <table class="table table-striped">
+        <thead><h4>Test Cases</h4></thead>
+            <tr>
+                <td><a href="/">Result 1</a></td>
+            </tr>
+        <tr>
+                <td><a href="/">Result 2</a></td>
+            </tr>
+    </table>
+        </div>
+    <div class="result-details">
+        <div class="grid grid-fluid">
+            <div class="row">
+                <div class="col-12"><h4>TestCase Details</h4></div>
+            </div>
+            <div class="row">
+                <div class="col-4">Case Name</div>
+                <div class="col-8">
+                    <div class="alert alert-done">This is a done alert.</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4">Case Name</div>
+                <div class="col-8">
+                    <div class="alert alert-done">This is a done alert.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+     </div>
+{% endblock %}

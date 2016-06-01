@@ -1,5 +1,6 @@
 import unittest
-from prettyunit import PrettyUnit
+
+from prettyunit.prettyunit import PrettyUnit
 
 
 class BaseTest1(unittest.TestCase):
