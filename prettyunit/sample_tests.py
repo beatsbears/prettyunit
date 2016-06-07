@@ -1,6 +1,6 @@
 import unittest
 
-from prettyunit.prettyunit import PrettyUnit
+from prettyunit import PrettyUnit
 
 
 class BaseTest1(unittest.TestCase):
@@ -63,5 +63,6 @@ if __name__ == '__main__':
 	json_results = PU.generateJson()
 	print json_results
 	PU.generateJsonAndSave('/Users/andrewscott/Desktop/')
+	PU.generateJsonAndSendHttp('http://127.0.0.1:5000/api/results')
 
 

@@ -11,3 +11,4 @@ app.config['DEBUG'] = True
 db = SQLAlchemy(app)
 
 import models
+import views
