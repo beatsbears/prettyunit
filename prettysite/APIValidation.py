@@ -3,50 +3,50 @@ from dateutil.parser import parse
 from prettysite import db
 from models import Suite, TestCase, Test, Server
 
-class api_handler():
+class APIHandler():
 
     def testcase_parser(self, name, data, date, suite):
-        case_name = name
-        date_run = date
-        suite_id = Suite.getsuiteid(suite, date_run)
-        test_results = [0, 0, 0, 0]  # pass, fail, error, skip
+        caseName = name
+        dateRun = date
+        suiteId = Suite.getsuiteid(suite, dateRun)
+        testResults = [0, 0, 0, 0]  # pass, fail, error, skip
         for test in data:
             if self.is_result_valid(test["result"]):
                 if test["result"] == "passed":
-                    test_results[0] += 1
+                    testResults[0] += 1
                 elif test["result"] == "failure":
-                    test_results[1] += 1
+                    testResults[1] += 1
                 elif test["result"] == "error":
-                    test_results[2] += 1
+                    testResults[2] += 1
                 else:
-                    test_results[3] += 1
-        test_pass, test_fail, test_error, test_skip = test_results
-        test_count = sum(test_results)
-        if not TestCase.isdupe(case_name, date_run):
-            db.session.add(TestCase(SuiteId=suite_id, TestCaseName=case_name, TestCount=test_count,
-                                    PassCount=test_pass, FailCount= test_fail, ErrorCount=test_error,
-                                    SkipCount=test_skip, DateRun=date_run))
+                    testResults[3] += 1
+        testPass, testFail, testError, testSkip = testResults
+        testCount = sum(testResults)
+        if not TestCase.isdupe(caseName, dateRun):
+            db.session.add(TestCase(SuiteId=suiteId, TestCaseName=caseName, TestCount=testCount,
+                                    PassCount=testPass, FailCount= testFail, ErrorCount=testError,
+                                    SkipCount=testSkip, DateRun=dateRun))
             db.session.commit()
         else:
             pass
 
     def server_parser(self, json):
-        server_name, os_system = json["server"], json["system"]
-        if server_name and os_system:
-            if not Server.isdupe(server_name):
-                db.session.add(Server(ServerName=server_name, ServerOS=os_system))
+        serverName, osSystem = json["server"], json["system"]
+        if serverName and osSystem:
+            if not Server.isdupe(serverName):
+                db.session.add(Server(ServerName=serverName, ServerOS=osSystem))
                 db.session.commit()
             else:
                 pass
 
     def tests_parser(self, json):
-        testdata = json['test-cases']
-        date_run = parse(json['timestamp'])
+        testData = json['test-cases']
+        dateRun = parse(json['timestamp'])
         suite = json['suite-name']
         print suite
-        for testcase, data in testdata.items():
-            self.testcase_parser(testcase, data, date_run, suite)
-            testCaseId = TestCase.gettestcaseid(testcase, date_run)
+        for testcase, data in testData.items():
+            self.testcase_parser(testcase, data, dateRun, suite)
+            testCaseId = TestCase.gettestcaseid(testcase, dateRun)
             for test in data:
                 testName = test["test-name"]
                 testMessage = test["message"]
@@ -58,30 +58,30 @@ class api_handler():
                     pass
 
     def suite_parser(self, json):
-        suite_name = json['suite-name']
-        date_run = parse(json['timestamp'])
-        test_type = 'unittest'
-        test_count = self.assign_or_default(json['test-to-run'],0)
-        test_fail = self.assign_or_default(json['tests-failure'],0)
-        test_error = self.assign_or_default(json['tests-error'],0)
-        test_skip = self.assign_or_default(json['tests-skipped'],0)
-        test_run = self.assign_or_default(json['tests-run'],0)
-        test_pass = (test_run - (test_error + test_skip + test_fail)) \
-                    if (test_run - (test_error + test_skip + test_fail)) >= 0 \
+        suiteName = json['suite-name']
+        dateRun = parse(json['timestamp'])
+        testType = 'unittest'
+        testCount = self.assign_or_default(json['test-to-run'],0)
+        testFail = self.assign_or_default(json['tests-failure'],0)
+        testError = self.assign_or_default(json['tests-error'],0)
+        testSkip = self.assign_or_default(json['tests-skipped'],0)
+        testRun = self.assign_or_default(json['tests-run'],0)
+        testPass = (testRun - (testError + testSkip + testFail)) \
+                    if (testRun - (testError + testSkip + testFail)) >= 0 \
                     else 0 # pass = #tests run - all other results
-        server_id = Server.getserverid(json['server'])
-        if not Suite.isdupe(suite_name, date_run, server_id):
-            db.session.add(Suite(SuiteName=suite_name, TestType=test_type, TestCount=test_count,
-                             PassCount=test_pass , FailCount=test_fail, ErrorCount=test_error,
-                             SkipCount=test_skip, DateRun=date_run, ServerId=server_id))
+        serverId = Server.getserverid(json['server'])
+        if not Suite.isdupe(suiteName, dateRun, serverId):
+            db.session.add(Suite(SuiteName=suiteName, TestType=testType, TestCount=testCount,
+                             PassCount=testPass , FailCount=testFail, ErrorCount=testError,
+                             SkipCount=testSkip, DateRun=dateRun, ServerId=serverId))
             db.session.commit()
         else:
             pass
 ## ---------------------------------- Helper Methods --------------------------------------------
 
     def is_result_valid(self, result):
-        valid_str = ("passed", "failure", "skipped", "error")
-        if result.lower() in valid_str:
+        validString = ("passed", "failure", "skipped", "error")
+        if result.lower() in validString:
             return True
         return False
 
