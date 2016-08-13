@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "result_details.html" import result_details, test_cases , test_suites, suite_details%}
+
+ <!--Graphs-->
+{% block graphs %}
+    <div class="graph" id="graphs">
+        <div class="grid grid-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <h6>Timeline</h6>
+                    <div class="graphbox">
+                        <canvas id="TimeLineGraph"></canvas>
+                        <script>fitToContainer(document.getElementById('TimeLineGraph'));</script>
+                        <script>
+                            TimeLine({{ timeline }},{{ timeline_dates|tojson }});
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="SuiteResults">
+                <div class="col-6">
+                    <h6> Suite Summary</h6>
+                    <div class="graphbox">
+                        <table class="table table-striped" id="SuiteDetails">
+                        {{ suite_details(suitedetails) }}
+                        </table>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <h6>Suite Results</h6>
+                    <div class="graphbox">
+                        <canvas id="SuitePieChart"></canvas>
+                        <script>fitToContainer(document.getElementById('SuitePieChart'));</script>
+                        <script>
+                            SuitePie({{ suite_results }});
+                        </script>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <h6>Test Case Results</h6>
+                    <div class="graphbox">
+                        <canvas id="CasePieChart"></canvas>
+                        <script>fitToContainer(document.getElementById('CasePieChart'));</script>
+                        <script>
+                            CasePie({{ caseresults[casetodisplay] }});
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block results %}
+ <div class="results">
+    <div class="result-list">
+    <table class="table table-striped">
+        <thead><a class="btn btn-small" style="display:inline-block;" onclick="goBack()"><</a><h4 style="display:inline-block;">Test Cases</h4></thead>
+        {{ test_cases(testcaseslist, suiteid, casetodisplay) }}
+    </table>
+        </div>
+    <div class="result-details">
+        <h4>TestCase Details</h4>
+        <table class="table">
+            {{ result_details(testresults[casetodisplay]) }}
+        </table>
+    </div>
+ </div>
+{% endblock %}

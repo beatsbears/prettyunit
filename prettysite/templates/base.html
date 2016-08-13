@@ -11,6 +11,14 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/Chart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/pu.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.0.0.min.js') }}"></script>
+            <script>
+function popup_ver() {
+    var popup = document.getElementById('myPopup');
+    popup.classList.toggle('show');
+    console.log('clicked');
+}
+</script>
 </head>
 <body>
 <div class="content">
@@ -20,10 +28,19 @@
         <!-- Logo -->
         <a href="{{ url_for('index') }}" class="nav-logo">prettyunit.</a>
         <!-- Items -->
-        <a href="{{ url_for('version') }}" class="nav-link">version</a>
+        <!--<a href="#" class="nav-link" id="tooltip"><span title="{{ config['VERSION'] }}">version</span></a>-->
         <a href="{{ url_for('settings') }}" class="nav-link">settings</a>
+        <div class="popup" onclick="popup_ver()">version
+            <span class="popuptext" id="myPopup">{{ config['VERSION'] }}</span>
+        </div>
+
+
     </div>
     {%  endblock %}
+
+    {%  block projects %}
+    {%  endblock %}
+
 
     {%  block graphs %}
     {%  endblock %}
@@ -34,8 +51,8 @@
     <!-- Footer -->
     <div class="footer" align="center">
         <!-- Footer text -->
-        Built by <a href="https://drownedcoast.xyz/">Drowned Coast</a>.
-        Made using <a href="http://siimple.juanes.xyz/">Siimple</a> and <a href="http://www.chartjs.org/">chart.js</a>.
+        Built by <a href="https://drownedcoast.xyz/" target='_blank' >Drowned Coast</a>.
+        Made using <a href="http://siimple.juanes.xyz/" target='_blank' >Siimple</a> and <a href="http://www.chartjs.org/" target='_blank' >chart.js</a>.
     </div>
 </div>
 

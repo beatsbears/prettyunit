@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from prettysite import app, db
-from prettysite.models import Suite, TestCase, Test, Server
+from prettysite.models import Suite, TestCase, Test, Server, Project
 from flask_script import Manager, prompt_bool
 from flask_migrate import Migrate, MigrateCommand
 
@@ -15,8 +15,9 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def create_test_data():
     # create some test data
+    db.session.add(Project(ProjectName="Init"))
     db.session.add(Server(ServerName='test_server', ServerOS='linux'))
-    db.session.add(Suite(SuiteName='test_suite', ServerId=1))
+    db.session.add(Suite(SuiteName='test_suite', ServerId=1, ProjectId=1))
     db.session.add(TestCase(SuiteId=1, TestCaseName='test_case_1', TestCount=2, PassCount=1, SkipCount=1))
     db.session.add(TestCase(SuiteId=1, TestCaseName='test_case_2', TestCount=2, ErrorCount=1, FailCount=1))
     db.session.add(Test(TestCaseId=1, TestName='pass_test', Result='passed'))

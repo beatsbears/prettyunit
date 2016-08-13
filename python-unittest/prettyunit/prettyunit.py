@@ -26,8 +26,13 @@ class PrettyUnit(object):
         ...
     '''
 
-    def __init__(self):
+    def __init__(self, projectName):
+        '''
+        Args:
+            projectName (str): Name of the project, this is the top level separator for test data.
+        '''
         self.data = {}
+        self.PROJECT_NAME = projectName
         self.seed_data()
         self.TOTAL_TEST_COUNT = 0
 
@@ -88,6 +93,7 @@ class PrettyUnit(object):
         self.data["server"] = self.MACHINE_NAME
         self.data["system"] = self.SYSTEM
         self.data["test-to-run"] = self.TOTAL_TEST_COUNT
+        self.data["project"] = self.PROJECT_NAME
 
 
         tcs = {}

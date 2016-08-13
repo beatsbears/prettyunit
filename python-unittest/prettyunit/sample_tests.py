@@ -15,6 +15,13 @@ class BaseTest1(unittest.TestCase):
         f = 4
         self.assertEqual(f, 4)
 
+    def test_pass2(self):
+        """
+        built to pass 2
+        """
+        f = 4
+        self.assertEqual(f, 4)
+
     @unittest.skip("WIPPPPPPP")
     def test_skip(self):
         """
@@ -50,7 +57,7 @@ class BaseTest2(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    PU = PrettyUnit()
+    PU = PrettyUnit("Sample")
     # Create test suite
     name, suite = PU.generate_suite("test_suite", BaseTest1, BaseTest2)
 
@@ -64,5 +71,4 @@ if __name__ == '__main__':
     print json_results
     PU.generate_json_and_save('/Users/andrewscott/Desktop/')
     PU.generate_json_and_send_http('http://127.0.0.1:5000/api/results')
-
 

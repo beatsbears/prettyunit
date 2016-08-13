@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "result_details.html" import project_list %}
+
+
+<!-- Projects -->
+{% block projects %}
+<div id="project-selector">
+    <div id="project-header">
+        <h2>Select your project</h2>
+    </div>
+    <div id="project-list">
+        <center>
+            <table class="project-table">
+                {{ project_list(projects) }}
+            </table>
+        </center>
+    </div>
+</div>
+{%  endblock %}

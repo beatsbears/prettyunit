@@ -1,7 +1,7 @@
 
 from dateutil.parser import parse
 from prettysite import db
-from models import Suite, TestCase, Test, Server
+from models import Suite, TestCase, Test, Server, Project
 
 class APIHandler():
 
@@ -70,13 +70,24 @@ class APIHandler():
                     if (testRun - (testError + testSkip + testFail)) >= 0 \
                     else 0 # pass = #tests run - all other results
         serverId = Server.getserverid(json['server'])
+        projectId = Project.getprojectid(json['project'])
         if not Suite.isdupe(suiteName, dateRun, serverId):
             db.session.add(Suite(SuiteName=suiteName, TestType=testType, TestCount=testCount,
                              PassCount=testPass , FailCount=testFail, ErrorCount=testError,
-                             SkipCount=testSkip, DateRun=dateRun, ServerId=serverId))
+                             SkipCount=testSkip, DateRun=dateRun, ServerId=serverId, ProjectId=projectId))
             db.session.commit()
         else:
             pass
+
+    def project_parser(self, json):
+        projectName = json["project"]
+        if not Project.isdupe(projectName):
+            db.session.add(Project(ProjectName=projectName))
+            db.session.commit()
+        else:
+            pass
+
+
 ## ---------------------------------- Helper Methods --------------------------------------------
 
     def is_result_valid(self, result):

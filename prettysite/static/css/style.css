@@ -78,14 +78,145 @@
     height: 100%;
     display: block;
     margin-bottom: 200px;
+    background-color: white;
 }
 
+.empty-results {
+    background-color: #09a0f6;
+    float: right;
+    width:75%;
+    min-height: 400px;
+    height: 100%;
+    display: block;
+}
+
+
+.result-list td:hover {
+    background-color: #888888;
+    color: #888888;
+}
 
 .result-details {
     float: left;
     width: 75%;
     height: 100%;
     display: block;
+}
+
+.result-details tr:hover {
+    background-color: #EEEEEE;
+    color: #888888;
+}
+
+tr.selected {
+    background-color: #EEEEEE;
+    color: #888888;
+}
+
+#tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+#tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #888888;
+    color: #FFFFFF;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    top: 100%;
+    left: 40%;
+    position: absolute;
+    z-index: 1;
+}
+
+#tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+
+.popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 300;
+    margin-right: 20px;
+    float: right;
+    opacity: 0.9;
+}
+
+.popup .popuptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: #01579B;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 0;
+    position: absolute;
+    z-index: 100;
+    top: 125%;
+    left: 50%;
+    margin-left: -80px;
+}
+
+.popup .popuptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    z-index: 100;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #01579B transparent;
+}
+
+.show {
+    visibility: visible !important;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;
+}
+
+@-webkit-keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity:1 ;}
+}
+
+
+
+#project-selector {
+    background-color: #c7dae9;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+#project-header {
+    text-align: center;
+}
+
+.btn-big {
+    width: 400px;
+}
+
+#SuiteDetails {
+    height: 90%;
+    margin-bottom: 10px;
+    font-size: 10px;
 }
 
 /*

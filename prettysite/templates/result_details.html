@@ -1,0 +1,69 @@
+{% macro result_details(tests) %}
+{% for test in tests %}
+<tr>
+    <td width="30%">
+        <h6> {{ test[0] }}</h6>
+    </td>
+    {% if test[2] == 'passed' %}
+        <td width="70%"><div class="alert alert-done"> {{ test[1] }} </div></td>
+    {% elif test[2] == 'failure' %}
+        <td width="70%"><div class="alert alert-warning"> {{ test[1] }} </div></td>
+    {% elif test[2] == 'error' %}
+        <td width="70%"><div class="alert alert-error"> {{ test[1] }} </div></td>
+    {% else %}
+        <td width="70%"><div class="alert">{{ test[1] }}</div></td>
+    {% endif %}
+</tr>
+{% endfor %}
+{% endmacro %}
+
+
+
+{% macro test_cases(cases, suiteid, casetodisplay) %}
+    {% for case in cases %}
+        <tr id="case{{ case[0] }}">
+            <td><a href="?case={{ case[0] }}">{{ case[1]|safe }} - {{ case[2].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
+        </tr>
+    {% endfor %}
+        <script>
+            var caseindex = getParameterByName('case');
+            if (caseindex == null) {
+                caseindex = {{ cases[0][0] }}
+            }
+            var caseVal = "#case" + caseindex;
+            console.log(caseVal);
+            $(caseVal).addClass("selected");
+            $("tr").click(function(){
+                $(this).addClass("selected").siblings().removeClass("selected");
+                });
+        </script>
+{% endmacro %}
+
+
+{% macro test_suites(suites) %}
+    {% for suite in suites %}
+        <tr>
+            <td><a href="{{ request.path }}/{{ suite[0] }}">{{ suite[1][0]|safe }} - {{ suite[1][1].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
+        </tr>
+    {% endfor %}
+{% endmacro %}
+
+{% macro suite_details(details) %}
+    {% for item in details %}
+        <tr>
+            <td>{{ item[0] }}</td>
+            <td>{{ item[1] }}</td>
+            <td>{{ item[2] }}</td>
+            <td>{{ item[3] }}</td>
+            <td>{{ item[4] }}</td>
+        </tr>
+    {% endfor %}
+{% endmacro %}
+
+{% macro project_list(projects) %}
+    {% for project in projects %}
+        <tr>
+            <td><a class="btn btn-big" href="{{ project[0] }}">{{ project[1] }}</a></td>
+        </tr>
+    {% endfor %}
+{% endmacro %}

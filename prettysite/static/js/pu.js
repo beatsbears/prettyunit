@@ -6,29 +6,48 @@ function fitToContainer(canvas){
 }
 
 
-function TimeLine(testcounts) {
+function TimeLine(testcounts, dates) {
   var ctx = document.getElementById("TimeLineGraph");
   Chart.defaults.global.legend.display = false;
 
-  var counts = []
-  for (i = 0; i < testcounts.length; i++ ) {
-     counts.push("");
-  };
 
   var data = {
-    labels: counts,
+    labels: dates,
     datasets: [
         {
-            label: "Test Count",
-            backgroundColor: "rgba(9,160,246,0.6)",
-            data: testcounts,
+            label: "Skip Count",
+            backgroundColor: "rgba(9,160,246,1)",
+            data: testcounts[0],
+        },
+        {
+            label: "Error Count",
+            backgroundColor: "rgba(229,128,12,1)",
+            data: testcounts[1],
+        },
+        {
+            label: "Fail Count",
+            backgroundColor: "rgba(204,0,39,1)",
+            data: testcounts[2],
+        },
+        {
+            label: "Pass Count",
+            backgroundColor: "rgba(12,155,0,1)",
+            data: testcounts[3],
         }
+
     ]
   };
 
   var TimeLineGraph = new Chart(ctx, {
     type: 'line',
     data: data,
+    options: {
+        scales: {
+            yAxes: [{
+                stacked: true
+            }]
+        }
+    }
   });
 };
 
@@ -142,3 +161,18 @@ var CasePieChart = new Chart(ctx,{
     data: data,
 });
 };
+
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function goBack() {
+    window.history.back();
+}
