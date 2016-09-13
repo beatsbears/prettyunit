@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from prettysite import app, db
-from prettysite.models import Suite, TestCase, Test, Server, Project
+from prettysite.models import Suite, TestCase, Test, Server, Project, PrettySiteSettings
 from flask_script import Manager, prompt_bool
 from flask_migrate import Migrate, MigrateCommand
 
@@ -25,7 +25,14 @@ def create_test_data():
     db.session.add(Test(TestCaseId=2, TestName='error_test', Message='Stacktrace: blahh', Result='error'))
     db.session.add(Test(TestCaseId=2, TestName='failed_test', Message='1 != 2', Result='failure'))
     db.session.commit()
-    print 'Test data added to the database'
+    print '[+] Test data added to the database'
+
+@manager.command
+def create_default_settings():
+    # Sets up the default settings
+    db.session.add(PrettySiteSettings(Name="Version",Value="0.1-ALPHA", Type="String"))
+    db.session.commit()
+    print '[+] Default settings added successfully'
 
 @manager.command
 def dropdb():

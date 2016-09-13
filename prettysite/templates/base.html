@@ -1,3 +1,5 @@
+{% from "result_details.html" import settings %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,13 +14,13 @@
     <script src="{{ url_for('static', filename='js/Chart.js') }}"></script>
     <script src="{{ url_for('static', filename='js/pu.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery-3.0.0.min.js') }}"></script>
-            <script>
-function popup_ver() {
-    var popup = document.getElementById('myPopup');
-    popup.classList.toggle('show');
-    console.log('clicked');
-}
-</script>
+    <script>
+    function popup_ver() {
+        var popup = document.getElementById('myPopup');
+        popup.classList.toggle('show');
+        console.log('clicked');
+    }
+    </script>
 </head>
 <body>
 <div class="content">
@@ -28,13 +30,18 @@ function popup_ver() {
         <!-- Logo -->
         <a href="{{ url_for('index') }}" class="nav-logo">prettyunit.</a>
         <!-- Items -->
-        <!--<a href="#" class="nav-link" id="tooltip"><span title="{{ config['VERSION'] }}">version</span></a>-->
-        <a href="{{ url_for('settings') }}" class="nav-link">settings</a>
+        <a id="showSettings" class="nav-link">settings</a>
         <div class="popup" onclick="popup_ver()">version
             <span class="popuptext" id="myPopup">{{ config['VERSION'] }}</span>
         </div>
+    </div>
 
-
+    <!-- Settings Modal -->
+    <div id="SettingsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            {{ settings("1") }}
+        </div>
     </div>
     {%  endblock %}
 
@@ -55,6 +62,35 @@ function popup_ver() {
         Made using <a href="http://siimple.juanes.xyz/" target='_blank' >Siimple</a> and <a href="http://www.chartjs.org/" target='_blank' >chart.js</a>.
     </div>
 </div>
+
+
+<script>
+// Get the modal
+var modal = document.getElementById('SettingsModal');
+
+// Get the button that opens the modal
+var btn = document.getElementById("showSettings");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
 
 </body>
 </html>

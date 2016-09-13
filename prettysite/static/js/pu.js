@@ -44,9 +44,18 @@ function TimeLine(testcounts, dates) {
     options: {
         scales: {
             yAxes: [{
-                stacked: true
-            }]
-        }
+                stacked: true,
+                ticks: {
+                    mirror: true
+                }
+            }],
+            xAxes: [{
+        ticks: {
+            maxRotation: 45,
+            minRotation: 15
+        }}]
+        },
+        fullWidth: true
     }
   });
 };
@@ -118,6 +127,9 @@ function SuitePie(SuiteObj){
 var SuitePieChart = new Chart(ctx,{
     type: 'pie',
     data: data,
+    options: {
+    cutoutPercentage: 30
+    }
 });
 };
 
@@ -159,6 +171,9 @@ function CasePie(CaseObj){
 var CasePieChart = new Chart(ctx,{
     type: 'pie',
     data: data,
+    options: {
+    cutoutPercentage: 30
+    }
 });
 };
 
@@ -175,4 +190,8 @@ function getParameterByName(name, url) {
 
 function goBack() {
     window.history.back();
+}
+
+function showSettings() {
+
 }

@@ -1,20 +1,22 @@
 from flask import Flask, render_template, request, url_for
 
 from prettysite import app, db
-from models import Suite, TestCase, Test, Server, Project
+from models import Suite, TestCase, Test, Server, Project, PrettySiteSettings
 from APIValidation import APIHandler
 
 # ----------------------------------------------------------------------------------------
 @app.route('/')
 def index():
     projects = Project.listprojects()
-    return render_template('project.html', projects=projects)
+    settings = PrettySiteSettings.listsettings()
+    return render_template('project.html', projects=projects, settings=settings)
 
 
 
 @app.route('/<int:projectid>')
 def project_overview(projectid):
     tl = Suite.timeline(projectid)
+    settings = PrettySiteSettings.listsettings()
     print tl
     timeline = [[],[],[],[]] # skip, error, fail, pass
     dates = []
@@ -25,13 +27,14 @@ def project_overview(projectid):
         timeline[3].append(t[0])
         dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
     suitelist =  [item for item in Suite.get_suites_by_project(projectid).items()]
-    return render_template('index.html', timeline=timeline, timeline_dates=dates, suitelist=suitelist)
+    return render_template('index.html', timeline=timeline, timeline_dates=dates, suitelist=suitelist, settings=settings)
 
 
 @app.route('/<int:projectid>/<int:suiteid>')
 def suite_overview(suiteid, projectid):
 
     tl = Suite.timeline(projectid)
+    settings = PrettySiteSettings.listsettings()
     timeline = [[],[],[],[]] # skip, error, fail, pass
     dates = []
     for t in tl:
@@ -71,7 +74,8 @@ def suite_overview(suiteid, projectid):
         return render_template('suite.html', timeline=timeline, timeline_dates=dates,
                                suite_results=suiteResults, testcaseslist=caseList,
                                suiteid=suiteid, caseresults=caseResults,
-                               testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails)
+                               testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails,
+                               settings=settings)
     else:
         return '', 404
 

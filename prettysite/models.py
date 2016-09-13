@@ -1,6 +1,7 @@
 from datetime import datetime
 from prettysite import db
-
+from sqlalchemy import desc
+from collections import OrderedDict
 
 
 ## --------------------------------- SUITE ---------------------------------------------
@@ -17,17 +18,28 @@ class Suite(db.Model):
     DateRun = db.Column(db.DateTime, default=datetime.utcnow())
     ServerId = db.Column(db.Integer, db.ForeignKey('server.id'), nullable=False)
     testcases = db.relationship('TestCase', backref='suite', lazy='dynamic')
+    ProjectId = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False, default=0)
 
     @staticmethod
     def results(id):
-        res = Suite.query.filter(Suite.id == id)
+        res = Suite.query.filter(Suite.id == id).first()
         return [res.PassCount, res.FailCount, res.ErrorCount, res.SkipCount]
 
     @staticmethod
+    def timeline(projectid):
+        return Suite.query.with_entities(Suite.PassCount, Suite.FailCount, Suite.ErrorCount, Suite.SkipCount, Suite.DateRun).filter(Suite.ProjectId == projectid).order_by((Suite.DateRun)).all()
+
+    @staticmethod
+    def listsuites():
+        objlist = Suite.query.with_entities(Suite.id, Suite.SuiteName, Suite.DateRun).order_by(desc(Suite.DateRun)).all()
+        returndict = OrderedDict()
+        for suite in objlist:
+            returndict[suite.id] = [suite.SuiteName, suite.DateRun]
+        return returndict
+
+    @staticmethod
     def isdupe(name, date, server_id):
-        if Suite.query.filter(Suite.SuiteName == name, Suite.DateRun == date, Suite.ServerId == server_id).first() > 0:
-            return True
-        return False
+        return bool(Suite.query.filter(Suite.SuiteName == name, Suite.DateRun == date, Suite.ServerId == server_id).first() > 0)
 
     @staticmethod
     def getsuiteid(name, date):
@@ -36,6 +48,27 @@ class Suite(db.Model):
         else:
             return 0
 
+    @staticmethod
+    def does_exist(id):
+        return bool(Suite.query.filter(Suite.id == id).first() > 0)
+
+    @staticmethod
+    def get_suites_by_project(projectid):
+        objlist = Suite.query.with_entities(Suite.id, Suite.SuiteName, Suite.DateRun).filter(Suite.ProjectId == projectid).order_by(desc(Suite.DateRun)).all()
+        returndict = OrderedDict()
+        for suite in objlist:
+            returndict[suite.id] = [suite.SuiteName, suite.DateRun]
+        return returndict
+
+    @staticmethod
+    def get_suite_details(id):
+        details = Suite.query.with_entities(Suite.PassCount, Suite.TestCount, Project.ProjectName, Server.ServerName, Server.ServerOS, Suite.DateRun).join(Project, Server).filter(Suite.id == id).all()
+        time = details[0][5].strftime("%m/%d/%y %H:%M UTC")
+        passRate = float(details[0][0])/float(details[0][1])*100
+        serverName = details[0][3]
+        serverOS = details[0][4]
+        projectname = details[0][2]
+        return [passRate, time, projectname, serverName, serverOS]
 
 
 ## --------------------------------- TESTCASE ---------------------------------------------
@@ -60,9 +93,14 @@ class TestCase(db.Model):
 
     @staticmethod
     def isdupe(name, date):
-        if TestCase.query.filter(TestCase.TestCaseName == name, TestCase.DateRun == date).first() > 0:
-            return True
-        return False
+        return bool(TestCase.query.filter(TestCase.TestCaseName == name, TestCase.DateRun == date).first() > 0)
+
+    @staticmethod
+    def get_testcase_by_suiteid(id):
+        if TestCase.query.filter(TestCase.SuiteId == id).first() > 0:
+            return TestCase.query.filter(TestCase.SuiteId == id).all()
+        else:
+            return 0
 
 
 ## --------------------------------- TEST ---------------------------------------------
@@ -75,10 +113,22 @@ class Test(db.Model):
 
     @staticmethod
     def isdupe(name, caseid):
-        if Test.query.filter(Test.TestCaseId == caseid, Test.TestName == name).first() > 0:
-            return True
-        return False
+        return bool(Test.query.filter(Test.TestCaseId == caseid, Test.TestName == name).first() > 0)
 
+    @staticmethod
+    def total_test_count():
+        passes = Test.query.filter(Test.Result == "passed").count()
+        fails = Test.query.filter(Test.Result == "failed").count()
+        errors = Test.query.filter(Test.Result == "error").count()
+        skips = Test.query.filter(Test.Result == "skipped").count()
+        return [passes, fails, errors, skips]
+
+    @staticmethod
+    def get_test_by_testcaseid(id):
+        if Test.query.filter(Test.TestCaseId == id).first() > 0:
+            return Test.query.filter(Test.TestCaseId == id).all()
+        else:
+            return 0
 
 ## --------------------------------- SERVER ---------------------------------------------
 class Server(db.Model):
@@ -90,9 +140,7 @@ class Server(db.Model):
 
     @staticmethod
     def isdupe(name):
-        if Server.query.filter(Server.ServerName == name).first():
-            return True
-        return False
+        return bool(Server.query.filter(Server.ServerName == name).first())
 
     @staticmethod
     def getserverid(name):
@@ -100,3 +148,55 @@ class Server(db.Model):
             return Server.query.filter(Server.ServerName == name).first().id
         else:
             return 0
+
+## --------------------------------- PROJECT ---------------------------------------------
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ProjectName = db.Column(db.String, nullable=False)
+
+    @staticmethod
+    def getprojectid(name):
+        if Project.query.filter(Project.ProjectName == name).first() > 0:
+            return Project.query.filter(Project.ProjectName == name).first().id
+        else:
+            return 0
+
+    @staticmethod
+    def listprojects():
+        return Project.query.with_entities(Project.id, Project.ProjectName).order_by(Project.id).all()
+
+    @staticmethod
+    def isdupe(name):
+        return bool(Project.query.filter(Project.ProjectName == name).first())
+
+## ---------------------------- SETTINGS -------------------------------------------------
+class PrettySiteSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String, nullable=False)
+    Value = db.Column(db.String, nullable=False)
+    Type = db.Column(db.String, nullable=False)
+    Locked = db.Column(db.Boolean, nullable=False, default=True)
+
+    @staticmethod
+    def getsettingvalue(name):
+        if PrettySiteSettings.query.filter(PrettySiteSettings.Name == name).first() > 0:
+            return PrettySiteSettings.query.filter(PrettySiteSettings.PrettySiteSettings == name).first().Value
+        else:
+            return 0
+
+    @staticmethod
+    def setsettingvalue(name, value):
+        if PrettySiteSettings.query.filter(PrettySiteSettings.Name == name).first() > 0:
+            try:
+                val = PrettySiteSettings.query.filter(PrettySiteSettings.Name == name).first()
+                val.Value = value
+                db.session.commit()
+                return True
+            except:
+                return False
+
+    @staticmethod
+    def listsettings():
+        return PrettySiteSettings.query.with_entities(PrettySiteSettings.Name, PrettySiteSettings.Value, PrettySiteSettings.Type, PrettySiteSettings.Locked).order_by(PrettySiteSettings.id).all()
+
+
