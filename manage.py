@@ -14,7 +14,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def create_test_data():
-    # create some test data
+    "Initializes the database with a test project"
     db.session.add(Project(ProjectName="Init"))
     db.session.add(Server(ServerName='test_server', ServerOS='linux'))
     db.session.add(Suite(SuiteName='test_suite', ServerId=1, ProjectId=1))
@@ -28,17 +28,23 @@ def create_test_data():
     print '[+] Test data added to the database'
 
 @manager.command
-def create_default_settings():
-    # Sets up the default settings
+def set_default_settings():
+    "Sets up the default settings"
     db.session.add(PrettySiteSettings(Name="Version",Value="0.1-ALPHA", Type="String"))
     db.session.commit()
     print '[+] Default settings added successfully'
 
 @manager.command
 def dropdb():
+    "Drops database tables"
     if prompt_bool("Are you sure you want to lose all your data"):
         db.drop_all()
         print 'Dropped the database'
+
+@manager.command
+def _dropdb_script():
+    "Drops database tables - no prompts"
+    db.drop_all()
 
 if __name__ == '__main__':
     manager.run()

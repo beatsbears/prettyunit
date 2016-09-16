@@ -17,3 +17,4 @@ import views
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'prettyunit.db')
 app.config['DEBUG'] = True
 app.config['VERSION'] = '0.1-ALPHA'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
