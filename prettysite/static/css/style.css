@@ -244,6 +244,13 @@ tr.selected {
     width: 80%;
 }
 
+.settings_edit {
+    white-space: nowrap;
+    width:400px;
+    overflow: hidden;
+    resize: none;
+}
+
 .close {
     color: #aaaaaa;
     float: right;

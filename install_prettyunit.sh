@@ -23,7 +23,10 @@ sleep 1
 python manage.py db upgrade 
 sleep 1
 echo "[+] DB migrations complete"
-python manage.py create_test_data >logs/prettyunit.log 2>&1
+if [ "$1" == "-t" ]; then
+    echo "[+] Adding test data to the database"
+    python manage.py create_test_data >logs/prettyunit.log 2>&1
+fi
 sleep 1
 python manage.py set_default_settings >logs/prettyunit.log 2>&1
 echo "[+] Setup completed"

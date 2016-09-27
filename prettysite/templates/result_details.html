@@ -5,13 +5,13 @@
         <h6> {{ test[0] }}</h6>
     </td>
     {% if test[2] == 'passed' %}
-        <td width="70%"><div class="alert alert-done"> {{ test[1] }} </div></td>
+    <td width="70%"><div class="alert alert-done"> {{ test[1] }} </div></td>
     {% elif test[2] == 'failure' %}
-        <td width="70%"><div class="alert alert-warning"> {{ test[1] }} </div></td>
+    <td width="70%"><div class="alert alert-warning"> {{ test[1] }} </div></td>
     {% elif test[2] == 'error' %}
-        <td width="70%"><div class="alert alert-error"> {{ test[1] }} </div></td>
+    <td width="70%"><div class="alert alert-error"> {{ test[1] }} </div></td>
     {% else %}
-        <td width="70%"><div class="alert">{{ test[1] }}</div></td>
+    <td width="70%"><div class="alert">{{ test[1] }}</div></td>
     {% endif %}
 </tr>
 {% endfor %}
@@ -20,12 +20,12 @@
 
 
 {% macro test_cases(cases, suiteid, casetodisplay) %}
-    {% for case in cases %}
-        <tr id="case{{ case[0] }}">
-            <td><a href="?case={{ case[0] }}">{{ case[1]|safe }} - {{ case[2].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
-        </tr>
-    {% endfor %}
-        <script>
+{% for case in cases %}
+<tr id="case{{ case[0] }}">
+    <td><a href="?case={{ case[0] }}">{{ case[1]|safe }} - {{ case[2].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
+</tr>
+{% endfor %}
+<script>
             var caseindex = getParameterByName('case');
             if (caseindex == null) {
                 caseindex = {{ cases[0][0] }}
@@ -41,40 +41,90 @@
 
 
 {% macro test_suites(suites) %}
-    {% for suite in suites %}
-        <tr>
-            <td><a href="{{ request.path }}/{{ suite[0] }}">{{ suite[1][0]|safe }} - {{ suite[1][1].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
-        </tr>
-    {% endfor %}
+{% for suite in suites %}
+<tr>
+    <td><a href="{{ request.path }}/{{ suite[0] }}">{{ suite[1][0]|safe }} - {{ suite[1][1].strftime('%m/%d/%y %H:%M UTC') }}</a></td>
+</tr>
+{% endfor %}
 {% endmacro %}
 
 {% macro suite_details(details) %}
-    {% for item in details %}
-        <tr>
-            <td>{{ item[0] }}</td>
-            <td>{{ item[1] }}</td>
-            <td>{{ item[2] }}</td>
-            <td>{{ item[3] }}</td>
-            <td>{{ item[4] }}</td>
-        </tr>
-    {% endfor %}
+{% for item in details %}
+<tr>
+    <td>{{ item[0] }}</td>
+    <td>{{ item[1] }}</td>
+    <td>{{ item[2] }}</td>
+    <td>{{ item[3] }}</td>
+    <td>{{ item[4] }}</td>
+</tr>
+{% endfor %}
 {% endmacro %}
 
 {% macro project_list(projects) %}
-    {% for project in projects %}
-        <tr>
-            <td><a class="btn btn-big" href="{{ project[0] }}">{{ project[1] }}</a></td>
-        </tr>
-    {% endfor %}
+{% for project in projects %}
+<tr>
+    <td><a class="btn btn-big" href="{{ project[0] }}">{{ project[1] }}</a></td>
+</tr>
+{% endfor %}
+{% if projects[0] is defined %}
+{% else %}
+<p> No projects defined yet!</p>
+{% endif %}
+
 {% endmacro %}
 
 
-{% macro settings(settings) %}
-    <h2> Settings </h2>
-    <table class="table table-striped">
-        <tr>
-            <td>Name</td>
-            <td>Value</td>
-        </tr>
-    </table>
+{% macro settings_disp(settings) %}
+<h2> Settings </h2>
+<table id="settings_table" class="table table-striped">
+    {% for setting in settings %}
+    <tr>
+        <td>{{ setting[0] }}</td>
+        {% if setting[3] == False %}
+        <td class="settings_edit" contenteditable="true" >{{ setting[1] }}</td>
+        {% else %}
+        <td style="font-weight: 999;">{{ setting[1] }}</td>
+        {% endif %}
+        <td style="display:none;">{{ setting[3] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<button id="save_settings_button" class="btn btn-small" onclick="save_settings()">Save</button>
+<script>
+    function save_settings() {
+        var setting_array = {};
+        var settings_table = document.getElementById('settings_table');
+
+        var rowLength = settings_table.rows.length;
+
+        for (i = 0; i < rowLength; i++){
+
+        var oCells = settings_table.rows.item(i).cells;
+
+        var cellLength = oCells.length;
+
+        for(var j = 0; j < cellLength; j++){
+
+          var setting_name = oCells.item(j).innerHTML;
+
+          if(j==0){
+            var setting_value = oCells.item(j+1).innerHTML;
+            var setting_lock = oCells.item(j+2).innerHTML;
+            setting_array[setting_name] = [setting_value, setting_lock];
+          }
+       }
+    }
+
+    $.ajax({
+        url: '/settings',
+        type: 'POST',
+        data: JSON.stringify(setting_array),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        async: false });
+
+    var modal = document.getElementById('SettingsModal');
+    modal.style.display = "none";
+    };
+    </script>
 {% endmacro %}

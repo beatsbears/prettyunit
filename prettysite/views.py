@@ -9,7 +9,9 @@ from APIValidation import APIHandler
 def index():
     projects = Project.listprojects()
     settings = PrettySiteSettings.listsettings()
-    return render_template('project.html', projects=projects, settings=settings)
+    name = PrettySiteSettings.getsettingvalue("Name")
+    print settings
+    return render_template('project.html', name=name, projects=projects, settings=settings)
 
 
 
@@ -86,6 +88,18 @@ def suite_overview(suiteid, projectid):
 @app.route('/settings')
 def settings():
     return '', 200
+
+
+@app.route('/settings', methods=['POST'])
+def update_settings():
+    try:
+        content = request.get_json(silent=True)
+        for key, val in content.items():
+            if val[1]:
+                PrettySiteSettings.setsettingvalue(key,val[0])
+        return '', 200
+    except:
+        return '', 500
 
 
 

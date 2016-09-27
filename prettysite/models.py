@@ -64,7 +64,10 @@ class Suite(db.Model):
     def get_suite_details(id):
         details = Suite.query.with_entities(Suite.PassCount, Suite.TestCount, Project.ProjectName, Server.ServerName, Server.ServerOS, Suite.DateRun).join(Project, Server).filter(Suite.id == id).all()
         time = details[0][5].strftime("%m/%d/%y %H:%M UTC")
-        passRate = float(details[0][0])/float(details[0][1])*100
+        if details[0][1] > 0:
+            passRate = float(details[0][0])/float(details[0][1])*100
+        else:
+            passRate = 0
         serverName = details[0][3]
         serverOS = details[0][4]
         projectname = details[0][2]
@@ -180,7 +183,7 @@ class PrettySiteSettings(db.Model):
     @staticmethod
     def getsettingvalue(name):
         if PrettySiteSettings.query.filter(PrettySiteSettings.Name == name).first() > 0:
-            return PrettySiteSettings.query.filter(PrettySiteSettings.PrettySiteSettings == name).first().Value
+            return PrettySiteSettings.query.filter(PrettySiteSettings.Name == name).first().Value
         else:
             return 0
 

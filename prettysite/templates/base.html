@@ -1,4 +1,4 @@
-{% from "result_details.html" import settings %}
+{% from "result_details.html" import settings_disp %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -28,10 +28,10 @@
     <!-- Navbar -->
     <div class="nav">
         <!-- Logo -->
-        <a href="{{ url_for('index') }}" class="nav-logo">prettyunit.</a>
+        <a href="{{ url_for('index') }}" class="nav-logo">{{ name }}</a>
         <!-- Items -->
         <a id="showSettings" class="nav-link">settings</a>
-        <div class="popup" onclick="popup_ver()">version
+        <div class="popup" onclick="popup_ver()"> version
             <span class="popuptext" id="myPopup">{{ config['VERSION'] }}</span>
         </div>
     </div>
@@ -40,7 +40,7 @@
     <div id="SettingsModal" class="modal">
         <div class="modal-content">
             <span class="close">×</span>
-            {{ settings("1") }}
+            {{ settings_disp( settings) }}
         </div>
     </div>
     {%  endblock %}
