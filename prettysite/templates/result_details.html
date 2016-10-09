@@ -78,53 +78,47 @@
 <h2> Settings </h2>
 <table id="settings_table" class="table table-striped">
     {% for setting in settings %}
-    <tr>
-        <td>{{ setting[0] }}</td>
+    <tr id="{{ setting[0] }}_id">
+        <td class="settings_name_column">{{ setting[0] }}</td>
         {% if setting[3] == False %}
-        <td class="settings_edit" contenteditable="true" >{{ setting[1] }}</td>
+            {% if setting[0] == "API Tokens Enabled" %}
+                {% if setting[1] == "False" %}
+                    <td class="settings_value_column"><input id="key_checkbox" type="checkbox" onclick="toggleKeys()"></td>
+                    <td style="width: 20%;">
+                    <a style="display: none;" onclick="refreshKeys()" id="refresh_keys_spinner">
+                        <img src="{{ url_for('static', filename='img/refresh.png') }}" height="20" width="20">
+                    </a>
+                </td>
+                {% else %}
+                    <td class="settings_value_column"><input id="key_checkbox" type="checkbox" checked onclick="toggleKeys()"></td>
+                    <td style="width: 20%;">
+                    <a onclick="refreshKeys()" id="refresh_keys_spinner">
+                        <img src="{{ url_for('static', filename='img/refresh.png') }}" height="20" width="20">
+                    </a>
+                </td>
+                {% endif %}
+            {% elif (setting[0] == "Key1" or setting[0] == "Key2") and settings[2][1] == "True" %}
+                <td class="settings_value_column">{{ setting[1] }}</td>
+                <td style="width: 20%;"></td>
+            {% else %}
+                <td class="settings_value_column" class="settings_edit" contenteditable="true">{{ setting[1] }}</td>
+                <td style="width: 20%;"></td>
+            {% endif %}
         {% else %}
-        <td style="font-weight: 999;">{{ setting[1] }}</td>
+        <td style="font-weight: 999;" class="settings_value_column">{{ setting[1] }}</td>
+        <td style="width: 20%;"></td>
         {% endif %}
-        <td style="display:none;">{{ setting[3] }}</td>
+        <td style="display:none; width: 0%;">{{ setting[3] }}</td>
     </tr>
     {% endfor %}
 </table>
-<button id="save_settings_button" class="btn btn-small" onclick="save_settings()">Save</button>
+<button id="save_settings_button" class="btn btn-small" onclick="saveSettings()">Save</button>
 <script>
-    function save_settings() {
-        var setting_array = {};
-        var settings_table = document.getElementById('settings_table');
-
-        var rowLength = settings_table.rows.length;
-
-        for (i = 0; i < rowLength; i++){
-
-        var oCells = settings_table.rows.item(i).cells;
-
-        var cellLength = oCells.length;
-
-        for(var j = 0; j < cellLength; j++){
-
-          var setting_name = oCells.item(j).innerHTML;
-
-          if(j==0){
-            var setting_value = oCells.item(j+1).innerHTML;
-            var setting_lock = oCells.item(j+2).innerHTML;
-            setting_array[setting_name] = [setting_value, setting_lock];
-          }
-       }
-    }
-
-    $.ajax({
-        url: '/settings',
-        type: 'POST',
-        data: JSON.stringify(setting_array),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        async: false });
-
-    var modal = document.getElementById('SettingsModal');
-    modal.style.display = "none";
-    };
-    </script>
+    var key1_row = document.getElementById('Key1_id');
+    var key2_row = document.getElementById('Key2_id');
+    {% if settings[2][1] == "False" %}
+        key1_row.style.display = 'none';
+        key2_row.style.display = 'none';
+    {% endif %}
+</script>
 {% endmacro %}

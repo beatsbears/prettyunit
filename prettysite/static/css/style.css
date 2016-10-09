@@ -265,6 +265,27 @@ tr.selected {
     cursor: pointer;
 }
 
+.refresh_keys_spinner {
+    display: block;
+}
+
+key_checkbox {
+
+}
+
+.settings_name_column {
+    width: 40%;
+    !important;
+}
+
+.settings_value_column {
+    width: 40%;
+    !important;
+}
+
+#settings_table tr.selected {
+    background_color: #ffffff;
+}
 
 /*
 Graph Colors

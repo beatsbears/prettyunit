@@ -192,6 +192,136 @@ function goBack() {
     window.history.back();
 }
 
+
+
+//-------------------------------------- Settings Modal -----------------------------------------
 function showSettings() {
 
 }
+
+// Ascott 10-5
+// Generate API keys for the first time or recreate a new set
+function refreshKeys() {
+    console.log("clicked");
+    $.ajax({
+    url: '/token',
+    type: 'GET',
+    async: true,
+    success: function(data){
+        var keys = JSON.parse(data);
+        var settings_table = document.getElementById("settings_table");
+        if (!(doAPIKeysExist())) {
+            for (var i = 0, len = 2; i < len; i++) {
+                var row = settings_table.insertRow(-1);
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                var cell4 = row.insertCell(3);
+                var key_name = "Key" + (i+1).toString();
+                row.id = key_name + "_id";
+                cell1.innerHTML = key_name;
+                cell1.className = "settings_name_column";
+                cell2.innerHTML = keys[key_name];
+                cell2.className = "settings_value_column";
+                cell4.innerHTML = "True";
+                cell4.style.display = "none";
+            }
+        } else {
+            var rowLength = settings_table.rows.length;
+            for (i = 0; i < rowLength; i++){
+                var oCells = settings_table.rows.item(i).cells;
+                if (oCells.item(0).innerHTML == "Key1") {
+                    oCells.item(1).innerHTML = keys["Key1"];
+                } else if (oCells.item(0).innerHTML == "Key2") {
+                    oCells.item(1).innerHTML = keys["Key2"];
+                }
+            }
+        }
+    }
+    });
+}
+
+// Ascott 10-6
+// Check if API keys exist
+function doAPIKeysExist() {
+    var settings_table = document.getElementById('settings_table');
+    var rowLength = settings_table.rows.length;
+    for (i = 0; i < rowLength; i++){
+        var oCells = settings_table.rows.item(i).cells;
+        if (oCells.item(0).innerHTML == "Key1") {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Ascott 10-5
+// Handle UI when API Keys are enabled/disabled
+function toggleKeys() {
+    var checkbox = document.getElementById('key_checkbox');
+    var key1_row = document.getElementById('Key1_id');
+    var key2_row = document.getElementById('Key2_id');
+    var spinnerImg = document.getElementById('refresh_keys_spinner');
+    var settings_table = document.getElementById("settings_table");
+
+    if (checkbox.checked == true) {
+        spinnerImg.style.display = 'block';
+        key1_row.style.display = 'block';
+        key2_row.style.display = 'block';
+
+    } else {
+        spinnerImg.style.display = 'none';
+        key1_row.style.display = 'none';
+        key2_row.style.display = 'none';
+    }
+}
+
+// Ascott 10-5
+// Check everything in the settings table and POST it back to /settings
+// This should be improved in the future to only post things that have changed
+function saveSettings() {
+    var setting_array = {};
+    var settings_table = document.getElementById('settings_table');
+
+    var rowLength = settings_table.rows.length;
+
+    for (i = 0; i < rowLength; i++){
+
+    var oCells = settings_table.rows.item(i).cells;
+
+    var cellLength = oCells.length;
+
+    for(var j = 0; j < cellLength; j++){
+
+      var setting_name = oCells.item(j).innerHTML;
+
+      // If we're dealing with the API keys we can treat them differently
+      if (setting_name == "API Tokens Enabled") {
+            var enabled_keys = document.getElementById('key_checkbox');
+            if (enabled_keys.checked) {
+                setting_array[setting_name] = ["True", "False"];
+            } else {
+                setting_array[setting_name] = ["False", "False"];
+            }
+      } else {
+          if(j==0){
+            var setting_value = oCells.item(j+1).innerHTML;
+            var setting_lock = oCells.item(j+3).innerHTML;
+            setting_array[setting_name] = [setting_value, setting_lock];
+          }
+      }
+   }
+}
+
+$.ajax({
+    url: '/settings',
+    type: 'POST',
+    data: JSON.stringify(setting_array),
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    async: false });
+
+var modal = document.getElementById('SettingsModal');
+modal.style.display = "none";
+location.reload();
+};

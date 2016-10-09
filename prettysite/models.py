@@ -197,9 +197,45 @@ class PrettySiteSettings(db.Model):
                 return True
             except:
                 return False
+        else:
+            db.session.add(PrettySiteSettings(Name=name, Value=value, Type="String", Locked=False))
+            db.session.commit()
 
     @staticmethod
     def listsettings():
         return PrettySiteSettings.query.with_entities(PrettySiteSettings.Name, PrettySiteSettings.Value, PrettySiteSettings.Type, PrettySiteSettings.Locked).order_by(PrettySiteSettings.id).all()
 
 
+
+## ---------------------------- Token -------------------------------------------------
+class APIToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    Token = db.Column(db.String, nullable=False)
+
+    @staticmethod
+    def getAPItoken():
+        return APIToken.query.with_entities(APIToken.Token).first()
+
+    @staticmethod
+    def replaceAPItoken(new_token):
+        print "Hit"
+        try:
+            if APIToken.query.filter(APIToken.id == 1).first() < 1:
+                print "Hit2"
+                db.session.add(APIToken(Token=new_token))
+                db.session.commit()
+            else:
+                print "Hit3"
+                val = APIToken.query.filter(APIToken.id == 1).first()
+                val.token == new_token
+                db.session.commit()
+            return True
+        except:
+            print "Hit4"
+            return False
+
+    @staticmethod
+    def validateToken(test_token):
+       if test_token == str(APIToken.query.with_entities(APIToken.Token).first()[0]):
+           return True
+       return False

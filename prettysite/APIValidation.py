@@ -1,7 +1,8 @@
 
 from dateutil.parser import parse
 from prettysite import db
-from models import Suite, TestCase, Test, Server, Project
+from models import Suite, TestCase, Test, Server, Project, APIToken
+from APIKey import APIKey
 
 class APIHandler():
 
@@ -101,3 +102,24 @@ class APIHandler():
             return value
         else:
             return default
+
+## ---------------------------------- Security Methods --------------------------------------------
+
+    def check_api_header(self, headers):
+        API = APIKey()
+        # return False is header is missing
+        if 'X-Key' not in headers:
+            return False
+        # return False if header is malformed
+        try:
+            k1,k2 = headers["X-Key"].split(":")
+        except:
+            return False
+        # ...
+        if len(k1) != 30 and len(k2) != 30:
+            return False
+        ## Get the hash for the keys
+        sha_hash = API.createMasterKey(k1, k2)
+        if sha_hash != APIToken.getAPItoken():
+            return False
+        return True
