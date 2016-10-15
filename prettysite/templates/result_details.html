@@ -122,3 +122,48 @@
     {% endif %}
 </script>
 {% endmacro %}
+
+
+{% macro project_description(project_desc) %}
+<div class="project_description">
+    <table  id="project_details_table" class="table table-striped" style="width: 100%;" disabled>
+        <thead class="pname_tr">
+            <td class="pname_td" style="width: 10%; font-weight: 999;">Project</td>
+            <td class="pname_td" id="project_name_field" style="width: 85%;" contenteditable="false">{{ project_desc['name'] }}</td>
+            <td style="width: 5%;"></td>
+        </thead>
+        <tbody  class="initially_hidden">
+        <tr id="pdescritpion_tr">
+            <td style="width: 10%; font-weight: 999;">Description</td>
+            <td id="project_description_field" style="width: 85%;" contenteditable="false">{{ project_desc['description'] }}</td>
+            <td style="width: 5%;" onclick="editDescription()">
+                    <img id="project_description_button" src="{{ url_for('static', filename='img/edit.png') }}" height="20" width="20" state="edit">
+            </td>
+        </tr>
+        </tr>
+        <tr id="planguage_tr">
+            <td style="width: 10%; font-weight: 999;">Language</td>
+            <td id="project_language_field" style="width: 85%;" contenteditable="false">{{ project_desc['language'] }}</td>
+            <td style="width: 5%;"></td>
+        </tr>
+        <tr id="purl_tr">
+            <td style="width: 10%; font-weight: 999;">Url</td>
+            <td id="project_url_field" style="width: 85%;" contenteditable="false">{{ project_desc['url'] }}</td>
+            <td style="width: 5%;"></td>
+        </tr>
+        </tbody>
+        <span id="project_id" style="display: none;">{{ project_desc['id'] }}</span>
+        </table>
+    </table>
+</div>
+<script>
+    $('.pname_tr').click(function(){
+    var project_name_field = document.getElementById("project_name_field");
+
+    if (!(project_name_field.isContentEditable)) {
+        $(this).nextUntil('thead.pname_tr').slideToggle(500);
+    }
+    });
+
+</script>
+{% endmacro %}

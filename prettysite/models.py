@@ -156,6 +156,9 @@ class Server(db.Model):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ProjectName = db.Column(db.String, nullable=False)
+    ProjectDescription  = db.Column(db.String, nullable=False, default="Not set yet")
+    ProjectLanguage = db.Column(db.String, nullable=False, default="Unknown")
+    ProjectUrl = db.Column(db.String, nullable=False, default="Unknown")
 
     @staticmethod
     def getprojectid(name):
@@ -171,6 +174,44 @@ class Project(db.Model):
     @staticmethod
     def isdupe(name):
         return bool(Project.query.filter(Project.ProjectName == name).first())
+
+    @staticmethod
+    def getprojectdescription(id):
+        return Project.query.with_entities(Project.ProjectDescription).filter(Project.id == id).first()
+
+    @staticmethod
+    def getprojectlanguage(id):
+        return Project.query.with_entities(Project.ProjectLanguage).filter(Project.id == id).first()
+
+    @staticmethod
+    def getprojecturl(id):
+        return Project.query.with_entities(Project.ProjectUrl).filter(Project.id == id).first()
+
+    @staticmethod
+    def getprojectdetails(id):
+        try:
+            return Project.query.with_entities(Project.id, Project.ProjectName, Project.ProjectDescription, Project.ProjectLanguage, Project.ProjectUrl).filter(Project.id == id).all()
+        except:
+            return 0
+    @staticmethod
+    def setprojectfields(id, field, value):
+        try:
+            val = Project.query.filter(Project.id == id).first()
+            if field == "Project":
+                val.ProjectName = value
+            elif field == "Description":
+                val.ProjectDescription = value
+            elif field == "Language":
+                val.ProjectLanguage = value
+            elif field == "Url":
+                val.ProjectUrl = value
+            else:
+                return False
+            db.session.commit()
+            return True
+        except:
+            return False
+
 
 ## ---------------------------- SETTINGS -------------------------------------------------
 class PrettySiteSettings(db.Model):

@@ -1,5 +1,13 @@
+<!--
+Ascott 10-9
+-->
 {% extends "base.html" %}
-{% from "result_details.html" import result_details, test_cases , test_suites%}
+{% from "result_details.html" import result_details, test_cases , test_suites, project_description%}
+
+<!--Description-->
+{% block description %}
+{{ project_description( project_desc ) }}
+{% endblock %}
 
 <!--Graphs-->
 {% block graphs %}

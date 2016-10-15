@@ -1,3 +1,9 @@
+'''
+python 2.7 unittest sample tests
+
+author: Andrew Scott
+repo: https://github.com/beatsbears/prettyunit
+'''
 import unittest
 
 from prettyunit import PrettyUnit
@@ -25,7 +31,7 @@ class BaseTest1(unittest.TestCase):
     @unittest.skip("WIPPPPPPP")
     def test_skip(self):
         """
-        built to pass 2
+        built to skip
         """
         f = 5
         self.assertEqual(f, 5)
@@ -39,14 +45,14 @@ class BaseTest2(unittest.TestCase):
 
     def test_fail(self):
         """
-        built to pass 3
+        built to fail
         """
         f = 6
         self.assertEqual(f, 5, "did I fail?")
 
     def test_error(self):
         """
-        built to pass 3
+        built to error
         """
         f = a
         self.assertEqual(f, 5, "did I error?")
@@ -69,6 +75,5 @@ if __name__ == '__main__':
     PU.add_results_json(results)
     json_results = PU.generate_json()
     print json_results
-    PU.generate_json_and_save('/Users/andrewscott/Desktop/')
     PU.generate_json_and_send_http('http://127.0.0.1:5000/api/results')
 

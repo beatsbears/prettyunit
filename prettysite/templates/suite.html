@@ -1,5 +1,11 @@
 {% extends "base.html" %}
-{% from "result_details.html" import result_details, test_cases , test_suites, suite_details%}
+{% from "result_details.html" import result_details, test_cases , test_suites, suite_details, project_description%}
+
+
+<!--Description-->
+{% block description %}
+{{ project_description( project_desc ) }}
+{% endblock %}
 
  <!--Graphs-->
 {% block graphs %}

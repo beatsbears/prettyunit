@@ -1,3 +1,18 @@
+// Ascott 10-9
+// Pretty unit site main js
+
+//-------------------------- Graph Colors ----------------------------
+var passColor = "rgba(43,247,149,1)";
+var skipColor = "rgba(0,148,247,1)";
+var errorColor = "rgba(247,152,121,1)";
+var failColor = "rgba(247,66,0,1)";
+
+var passColor_hover = "rgba(12,155,0,0.5)";
+var skipColor_hover = "rgba(9,160,246,0.5)";
+var errorColor_hover = "rgba(229,128,12,0.5)";
+var failColor_hover = "rgba(204,0,39,0.5)";
+
+
 function fitToContainer(canvas){
   canvas.style.width='100%';
   canvas.style.height='100%';
@@ -16,22 +31,22 @@ function TimeLine(testcounts, dates) {
     datasets: [
         {
             label: "Skip Count",
-            backgroundColor: "rgba(9,160,246,1)",
+            backgroundColor: skipColor,
             data: testcounts[0],
         },
         {
             label: "Error Count",
-            backgroundColor: "rgba(229,128,12,1)",
+            backgroundColor: errorColor,
             data: testcounts[1],
         },
         {
             label: "Fail Count",
-            backgroundColor: "rgba(204,0,39,1)",
+            backgroundColor: failColor,
             data: testcounts[2],
         },
         {
             label: "Pass Count",
-            backgroundColor: "rgba(12,155,0,1)",
+            backgroundColor: passColor,
             data: testcounts[3],
         }
 
@@ -46,7 +61,7 @@ function TimeLine(testcounts, dates) {
             yAxes: [{
                 stacked: true,
                 ticks: {
-                    mirror: true
+                    mirror: true,
                 }
             }],
             xAxes: [{
@@ -69,16 +84,16 @@ function SummaryBar(SummaryObj) {
     datasets: [
         {
             backgroundColor: [
-                "rgba(12,155,0,1)",
-                "rgba(204,0,39,1)",
-                "rgba(229,128,12,1)",
-                "rgba(9,160,246,1)"
+                passColor,
+                failColor,
+                errorColor,
+                skipColor
             ],
             hoverBackgroundColor: [
-                "rgba(12,155,0,.5)",
-                "rgba(204,0,39,.5)",
-                "rgba(229,128,12,.5)",
-                "rgba(9,160,246,.5)"
+                passColor_hover,
+                failColor_hover,
+                errorColor_hover,
+                skipColor_hover
             ],
             hoverBorderColor: "rgba(1,1,1,1)",
             data: SummaryObj,
@@ -111,16 +126,16 @@ function SuitePie(SuiteObj){
         {
             data: SuiteObj,
             backgroundColor: [
-                "#0c9b00",
-                "#cc0027",
-                "#e5620c",
-                "#09a0f6"
+                passColor,
+                failColor,
+                errorColor,
+                skipColor
             ],
             hoverBackgroundColor: [
-                "#0c9b00",
-                "#cc0027",
-                "#e5620c",
-                "#09a0f6"
+                passColor_hover,
+                failColor_hover,
+                errorColor_hover,
+                skipColor_hover
             ]
         }]
 };
@@ -155,16 +170,16 @@ function CasePie(CaseObj){
         {
             data: CaseObj,
             backgroundColor: [
-                "#0c9b00",
-                "#cc0027",
-                "#e5620c",
-                "#09a0f6"
+                passColor,
+                failColor,
+                errorColor,
+                skipColor
             ],
             hoverBackgroundColor: [
-                "#0c9b00",
-                "#cc0027",
-                "#e5620c",
-                "#09a0f6"
+                passColor_hover,
+                failColor_hover,
+                errorColor_hover,
+                skipColor_hover
             ]
         }]
 };
@@ -190,6 +205,57 @@ function getParameterByName(name, url) {
 
 function goBack() {
     window.history.back();
+}
+
+// ------------------------------------- Description --------------------------------------------
+function editDescription() {
+
+    // Handle the UI for changing the project table between modes
+    var name_edit_field = document.getElementById("project_name_field");
+    var desc_edit_field = document.getElementById("project_description_field");
+    var lang_edit_field = document.getElementById("project_language_field");
+    var url_edit_field = document.getElementById("project_url_field");
+    var changeImg = "";
+    var description_button = document.getElementById("project_description_button");
+
+    if (description_button.src.includes("save.png")) {
+        name_edit_field.contentEditable = false;
+        desc_edit_field.contentEditable = false;
+        lang_edit_field.contentEditable = false;
+        url_edit_field.contentEditable = false;
+        changeImg = "/img/edit.png";
+        description_button.state = "save"
+
+        // Record project setting values
+        var project_array = {}
+        var project_details_table = document.getElementById("project_details_table");
+        var row_length = project_details_table.rows.length;
+        for (var i = 0; i < row_length; i++) {
+            var oCells = project_details_table.rows.item(i).cells;
+            project_array[oCells.item(0).innerHTML] = oCells.item(1).innerHTML
+        }
+
+        // PUT new project object via API
+        var project_id = document.getElementById("project_id").innerHTML;
+        var put_url = '/project/' + project_id;
+        console.log(put_url);
+        $.ajax({
+        url: put_url,
+        type: 'PUT',
+        data: JSON.stringify(project_array),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        async: false });
+    }
+    else if (description_button.src.includes("edit.png")) {
+        name_edit_field.contentEditable = true;
+        desc_edit_field.contentEditable = true;
+        lang_edit_field.contentEditable = true;
+        url_edit_field.contentEditable = true;
+        changeImg = "/img/save.png";
+        description_button.state = "edit"
+    }
+    description_button.src = changeImg;
 }
 
 
@@ -287,29 +353,29 @@ function saveSettings() {
 
     for (i = 0; i < rowLength; i++){
 
-    var oCells = settings_table.rows.item(i).cells;
+        var oCells = settings_table.rows.item(i).cells;
 
-    var cellLength = oCells.length;
+        var cellLength = oCells.length;
 
-    for(var j = 0; j < cellLength; j++){
+        for(var j = 0; j < cellLength; j++){
 
-      var setting_name = oCells.item(j).innerHTML;
+          var setting_name = oCells.item(j).innerHTML;
 
-      // If we're dealing with the API keys we can treat them differently
-      if (setting_name == "API Tokens Enabled") {
-            var enabled_keys = document.getElementById('key_checkbox');
-            if (enabled_keys.checked) {
-                setting_array[setting_name] = ["True", "False"];
-            } else {
-                setting_array[setting_name] = ["False", "False"];
-            }
-      } else {
-          if(j==0){
-            var setting_value = oCells.item(j+1).innerHTML;
-            var setting_lock = oCells.item(j+3).innerHTML;
-            setting_array[setting_name] = [setting_value, setting_lock];
+          // If we're dealing with the API keys we can treat them differently
+          if (setting_name == "API Tokens Enabled") {
+                var enabled_keys = document.getElementById('key_checkbox');
+                if (enabled_keys.checked) {
+                    setting_array[setting_name] = ["True", "False"];
+                } else {
+                    setting_array[setting_name] = ["False", "False"];
+                }
+          } else {
+              if(j==0){
+                var setting_value = oCells.item(j+1).innerHTML;
+                var setting_lock = oCells.item(j+3).innerHTML;
+                setting_array[setting_name] = [setting_value, setting_lock];
+              }
           }
-      }
    }
 }
 
