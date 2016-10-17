@@ -194,19 +194,18 @@ class Project(db.Model):
         except:
             return 0
     @staticmethod
-    def setprojectfields(id, field, value):
+    def setprojectfields(id, content_dict):
         try:
             val = Project.query.filter(Project.id == id).first()
-            if field == "Project":
-                val.ProjectName = value
-            elif field == "Description":
-                val.ProjectDescription = value
-            elif field == "Language":
-                val.ProjectLanguage = value
-            elif field == "Url":
-                val.ProjectUrl = value
-            else:
-                return False
+            for key, value in content_dict.items():
+                if key == "Project":
+                    val.ProjectName = value
+                elif key == "Description":
+                    val.ProjectDescription = value
+                elif key == "Language":
+                    val.ProjectLanguage = value
+                elif key == "Url":
+                    val.ProjectUrl = value
             db.session.commit()
             return True
         except:
