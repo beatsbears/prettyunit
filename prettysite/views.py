@@ -239,8 +239,8 @@ def usertokens():
 def update_project(projectid):
     content = request.get_json(silent=True)
     print projectid
-    for key, val in content.items():
-        Project.setprojectfields(projectid, key, val)
+    print content
+    Project.setprojectfields(projectid, content)
     return ('', 200)
 
 @app.route('/project/<int:projectid>', methods=['GET'])
