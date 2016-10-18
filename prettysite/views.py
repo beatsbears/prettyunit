@@ -132,23 +132,43 @@ def version():
 @app.route('/settings', methods=['GET', 'HEAD'])
 def settings():
     '''
-
-    :return:
+    This call can be used to return a json object containing the prettyunit settings.
+    :return: 200 if successful
+             500 if there was an error
     '''
-    return ('', 200)
+    try:
+        settings = PrettySiteSettings.listsettings()
+        data = {'version' : settings[0][1], 'name' : settings[1][1], 'api_tokens_enabled' : settings[2][1]}
+        if data['api_tokens_enabled'] == 'True':
+            if settings[3][0] == 'Key2':
+                data['Key2'] = settings[3][1]
+            if settings[3][0] == 'Key1':
+                data['Key1'] = settings[3][1]
+            if settings[4][0] == 'Key2':
+                data['Key2'] = settings[4][1]
+            if settings[4][0] == 'Key1':
+                data['Key1'] = settings[4][1]
+        return (str(json.dumps(data)), 200)
+    except:
+        return ('', 500)
 
 @app.route('/settings', methods=['POST'])
 def update_settings():
     '''
-
-    :return:
+    This call can be used to update the prettyunit settings. The second value in the tuple should always be "False" in order for this call to work.
+    {
+        "Name":[[str], "False"],
+        "API Tokens Enabled":[["True" or "False"], "False"]
+    }
+    :return: 200 if successful
+             500 if there was an error
     '''
     try:
         content = request.get_json(silent=True)
         print content
         newKeys = {}
         for key, val in content.items():
-            if val[1]:
+            if val[1] == "False":
                 PrettySiteSettings.setsettingvalue(key,val[0])
             if key == "Key1" or key == "Key2":
                 newKeys[key] = val[0]
@@ -201,13 +221,16 @@ def add_results():
         return ('', 200)
 
 
+
+
+
 # -------------------------------- Security ------------------------------------------------
 @app.route('/token', methods=['GET'])
 def generate_tokens():
     '''
-
+    This call should be used to get a new pair of API keys, which are combined to consititute a security token.
     :return: 200 and a json obj with the new key values
-             500 for error
+             500 if there was an error
     '''
     try:
         keygen = APIKey()
@@ -224,7 +247,7 @@ def usertokens():
     Can be used to check whether API tokens are enabled and populated
     :return: 200 for tokens ready for use
              404 if tokens are not enabled or populated
-             500 for error
+             500 if there was an error
     '''
     try:
         keygen = APIKey()
@@ -234,33 +257,57 @@ def usertokens():
             return ('', 404)
     except:
         return ('', 500)
+
+
+
+
 # -------------------------------- Project ------------------------------------------------
 @app.route('/project/<int:projectid>', methods=['PUT'])
 def update_project(projectid):
-    content = request.get_json(silent=True)
-    print projectid
-    print content
-    Project.setprojectfields(projectid, content)
-    return ('', 200)
+    '''
+    This call can be used to update the details of an existing project.
+    {
+        'Project': [str],
+        'Url': [str],
+        'Description': [str],
+        'Language': [str]
+    }
+    :param projectid: Int - This should be the ID of an existing project.
+    :return: 200 if successful
+             404 if the project does not exist
+             500 if there was an error
+    '''
+    if Project.does_exist(projectid):
+        try:
+            content = request.get_json(silent=True)
+            Project.setprojectfields(projectid, content)
+            return ('', 200)
+        except:
+            return ('', 500)
+    return ('', 404)
 
 @app.route('/project/<int:projectid>', methods=['GET'])
 def get_project(projectid):
     '''
-
-    :param projectid:
-    :return:
+    This call should return a json object with the details for an existing project.
+    :param projectid: Int - This should be the ID of an existing project.
+    :return: 200 if successful
+             404 if the project does not exist
+             500 if there was an error
     '''
-    try:
-        project = Project.getprojectdetails(projectid)[0]
-        data = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
-        return (str(json.dumps(data)), 200)
-    except:
-        return ('', 500)
+    if Project.does_exist(projectid):
+        try:
+            project = Project.getprojectdetails(projectid)[0]
+            data = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
+            return (str(json.dumps(data)), 200)
+        except:
+            return ('', 500)
+    return ('', 404)
 
 @app.route('/project', methods=['GET'])
 def list_projects():
     '''
-
+    This call should return a list of all projects as an [id, project_name] list.
     :return: 200 List of project id/name pairs
              500 if error
     '''
