@@ -168,6 +168,10 @@ class Project(db.Model):
             return 0
 
     @staticmethod
+    def does_exist(id):
+        return bool(Project.query.filter(Project.id == id).first() > 0)
+
+    @staticmethod
     def listprojects():
         return Project.query.with_entities(Project.id, Project.ProjectName).order_by(Project.id).all()
 
