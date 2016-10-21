@@ -16,7 +16,7 @@ class APIKey():
 
     def areTokensEnabledAndExist(self):
         tokensEnabled = PrettySiteSettings.getsettingvalue("API Tokens Enabled")
-        if tokensEnabled:
+        if tokensEnabled == "True":
             tokenValue = APIToken.getAPItoken()
             if tokenValue:
                 return True

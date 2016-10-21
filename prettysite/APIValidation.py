@@ -6,7 +6,16 @@ from APIKey import APIKey
 
 class APIHandler():
 
-    def testcase_parser(self, name, data, date, suite):
+
+    def is_v1(self, json):
+        if json['puv'] == '1.0':
+            return True
+        return False
+
+
+## ---------------------------------- json puv 1.0 --------------------------------------------
+
+    def testcase_parser_v1(self, name, data, date, suite):
         caseName = name
         dateRun = date
         suiteId = Suite.getsuiteid(suite, dateRun)
@@ -31,7 +40,7 @@ class APIHandler():
         else:
             pass
 
-    def server_parser(self, json):
+    def server_parser_v1(self, json):
         serverName, osSystem = json["server"], json["system"]
         if serverName and osSystem:
             if not Server.isdupe(serverName):
@@ -40,7 +49,7 @@ class APIHandler():
             else:
                 pass
 
-    def tests_parser(self, json):
+    def tests_parser_v1(self, json):
         testData = json['test-cases']
         dateRun = parse(json['timestamp'])
         suite = json['suite-name']
@@ -58,7 +67,7 @@ class APIHandler():
                 else:
                     pass
 
-    def suite_parser(self, json):
+    def suite_parser_v1(self, json):
         suiteName = json['suite-name']
         dateRun = parse(json['timestamp'])
         testType = 'unittest'
@@ -80,7 +89,7 @@ class APIHandler():
         else:
             pass
 
-    def project_parser(self, json):
+    def project_parser_v1(self, json):
         projectName = json["project"]
         if not Project.isdupe(projectName):
             db.session.add(Project(ProjectName=projectName))

@@ -16,6 +16,11 @@ if app.config['DEBUG'] == True:
 # ----------------------------------------------------------------------------------------
 @app.route('/', methods=['GET'])
 def index():
+    '''
+    This should return the base page, typically where the user would pick which project they'd like to work in.
+    :return: 200 if successful
+             500 if an error occurs
+    '''
     try:
         projects = Project.listprojects()
         settings = PrettySiteSettings.listsettings()
@@ -26,6 +31,11 @@ def index():
 
 @app.route('/<int:projectid>', methods=['GET'])
 def project_overview(projectid):
+    '''
+
+    :param projectid:
+    :return:
+    '''
     try:
         tl = Suite.timeline(projectid)
         settings = PrettySiteSettings.listsettings()
@@ -51,6 +61,12 @@ def project_overview(projectid):
 
 @app.route('/<int:projectid>/<int:suiteid>', methods=['GET'])
 def suite_overview(suiteid, projectid):
+    '''
+
+    :param suiteid:
+    :param projectid:
+    :return:
+    '''
     try:
         tl = Suite.timeline(projectid)
         settings = PrettySiteSettings.listsettings()
@@ -157,7 +173,7 @@ def update_settings():
     '''
     This call can be used to update the prettyunit settings. The second value in the tuple should always be "False" in order for this call to work.
     {
-        "Name":[[str], "False"],
+        "Name":[{string}, "False"],
         "API Tokens Enabled":[["True" or "False"], "False"]
     }
     :return: 200 if successful
@@ -184,42 +200,89 @@ def update_settings():
 @app.route('/api/results', methods=['POST'])
 def add_results():
     '''
-
-    :return:
+    This call is used to add new test records to pretty unit. Currently it can accept the
+    following formats [json v 1.0, ]
+    ---------------------------- json v 1.0 --------------------------------------------------
+    {
+      "puv": "1.0",
+      "tests-error": {integer},
+      "tests-skipped": {integer},
+      "timestamp": {string},
+      "system": {string},
+      "server": {string},
+      "project": {string},
+      "test-to-run": {integer},
+      "tests-failure": {integer},
+      "tests-run": {integer},
+      "suite-name": {string},
+      "test-cases": {
+        "BaseTest1": [
+          {
+            "test-name": {string},
+            "message": null or {string},
+            "result": {string}
+          }
+        ]
+      }
+    }
+    :return: 200 if call was successfully parsed
+             400 if request body was determined to be malformed
+             401 if API keys are enabled and request includes missing or incorrect keys
+             500 if a server error occurs
     '''
-    keygen = APIKey()
-    useTokens = keygen.areTokensEnabledAndExist()
-    if useTokens:
-        keyHeader = request.headers.get('X-Keys')
-        keys = json.loads(keyHeader)
-        token = keygen.createMasterKey(keys["Key1"], keys["Key2"])
-        if APIToken.validateToken(token):
-            APIV = APIHandler()
-            content = request.get_json(silent=True)
-            # Parse Project
-            APIV.project_parser(content)
-            # Parse Server
-            APIV.server_parser(content)
-            # Parse Suite
-            APIV.suite_parser(content)
-            # Parse TestCases and Tests
-            APIV.tests_parser(content)
-            return ('', 200)
+    try:
+        keygen = APIKey()
+        useTokens = keygen.areTokensEnabledAndExist()
+        if useTokens:
+            keyHeader = request.headers.get('X-Keys')
+            keys = json.loads(keyHeader)
+            token = keygen.createMasterKey(keys["Key1"], keys["Key2"])
+            if APIToken.validateToken(token):
+                APIV = APIHandler()
+                if request.headers.get('content-type') == 'application/json':
+                    content = request.get_json(silent=True)
+                    if APIV.is_v1(content):
+                        # Parse Project
+                        APIV.project_parser_v1(content)
+                        # Parse Server
+                        APIV.server_parser_v1(content)
+                        # Parse Suite
+                        APIV.suite_parser_v1(content)
+                        # Parse TestCases and Tests
+                        APIV.tests_parser_v1(content)
+                        return ('', 200)
+                    else:
+                        return ('unsupported PU json version', 400)
+                elif request.headers.get('content-type') == 'application/xml':
+                    print 'xml request'
+                    return ('xml support underway', 400)
+                else:
+                    return ('non-json format not yet supported', 400)
+            else:
+                return ('Invalid token', 401)
         else:
-            return ('Invalid token', 401)
-    else:
-        APIV = APIHandler()
-        content = request.get_json(silent=True)
-        # Parse Project
-        APIV.project_parser(content)
-        # Parse Server
-        APIV.server_parser(content)
-        # Parse Suite
-        APIV.suite_parser(content)
-        # Parse TestCases and Tests
-        APIV.tests_parser(content)
-        return ('', 200)
-
+            APIV = APIHandler()
+            if request.headers.get('content-type') == 'application/json':
+                    content = request.get_json(silent=True)
+                    if APIV.is_v1(content):
+                        # Parse Project
+                        APIV.project_parser_v1(content)
+                        # Parse Server
+                        APIV.server_parser_v1(content)
+                        # Parse Suite
+                        APIV.suite_parser_v1(content)
+                        # Parse TestCases and Tests
+                        APIV.tests_parser_v1(content)
+                        return ('', 200)
+                    else:
+                        return ('unsupported PU json version', 400)
+            elif request.headers.get('content-type') == 'application/xml':
+                print 'xml request'
+                return ('xml support underway', 400)
+            else:
+                return ('non-json format not yet supported', 400)
+    except:
+        return ('', 500)
 
 
 
@@ -267,10 +330,10 @@ def update_project(projectid):
     '''
     This call can be used to update the details of an existing project.
     {
-        'Project': [str],
-        'Url': [str],
-        'Description': [str],
-        'Language': [str]
+        'Project': {string},
+        'Url': {string},
+        'Description': {string},
+        'Language': {string}
     }
     :param projectid: Int - This should be the ID of an existing project.
     :return: 200 if successful

@@ -26,7 +26,7 @@ class PrettyUnit(object):
         ...
     '''
 
-    def __init__(self, projectName):
+    def __init__(self, projectName, API_key1=None, API_key2=None):
         '''
         Args:
             projectName (str): Name of the project, this is the top level separator for test data.
@@ -34,6 +34,9 @@ class PrettyUnit(object):
         self.data = {}
         self.PROJECT_NAME = projectName
         self.seed_data()
+        self.PU_FORMAT_VERSION = '1.0'
+        self.API_KEY1 = API_key1
+        self.API_KEY2 = API_key2
         self.TOTAL_TEST_COUNT = 0
 
     def seed_data(self):
@@ -94,6 +97,7 @@ class PrettyUnit(object):
         self.data["system"] = self.SYSTEM
         self.data["test-to-run"] = self.TOTAL_TEST_COUNT
         self.data["project"] = self.PROJECT_NAME
+        self.data["puv"] = self.PU_FORMAT_VERSION
 
 
         tcs = {}
@@ -231,7 +235,14 @@ class PrettyUnit(object):
         Returns:
             Bool: True is returned is the server responds with a 200 OK
         '''
-        headers = {'content-type': 'application/json'}
+        if self.API_KEY1 != None and self.API_KEY2 != None:
+            key_string = '"Key1":{}, "Key2":{}'.format(self.API_KEY1, self.API_KEY2)
+            headers = {'content-type': 'application/json',
+                        'X-Keys': key_string
+                       }
+        else:
+            headers = {'content-type': 'application/json'
+                       }
         url = host
         r = requests.post(url, data=json.dumps(self.data), headers=headers)
         return bool(r.status_code == 200)
