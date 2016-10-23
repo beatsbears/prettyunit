@@ -34,7 +34,7 @@ class APIHandler():
         testCount = sum(testResults)
         if not TestCase.isdupe(caseName, dateRun):
             db.session.add(TestCase(SuiteId=suiteId, TestCaseName=caseName, TestCount=testCount,
-                                    PassCount=testPass, FailCount= testFail, ErrorCount=testError,
+                                    PassCount=testPass, FailCount=testFail, ErrorCount=testError,
                                     SkipCount=testSkip, DateRun=dateRun))
             db.session.commit()
         else:
@@ -55,7 +55,7 @@ class APIHandler():
         suite = json['suite-name']
         print suite
         for testcase, data in testData.items():
-            self.testcase_parser(testcase, data, dateRun, suite)
+            self.testcase_parser_v1(testcase, data, dateRun, suite)
             testCaseId = TestCase.gettestcaseid(testcase, dateRun)
             for test in data:
                 testName = test["test-name"]

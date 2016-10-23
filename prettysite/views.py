@@ -1,48 +1,58 @@
-from flask import Flask, render_template, request, url_for
+"""prettyunit - prettysite views.py
+Andrew Scott 10/21/2016"""
 
-from prettysite import app, db
-from models import Suite, TestCase, Test, Server, Project, PrettySiteSettings, APIToken
-from APIValidation import APIHandler
-from APIKey import APIKey
-
+#pylint: disable=line-too-long, invalid-name, bare-except, broad-except
 import json
 
-if app.config['DEBUG'] == True:
+from flask import render_template, request
+from prettysite import app
+from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken
+from prettysite.APIValidation import APIHandler
+from prettysite.APIKey import APIKey
+
+
+
+
+
+if app.config['DEBUG']:
     import logging
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
+    logger = logging.getLogger('werkzeug')
+    logger.setLevel(logging.ERROR)
 
 
 # ----------------------------------------------------------------------------------------
 @app.route('/', methods=['GET'])
 def index():
     '''
-    This should return the base page, typically where the user would pick which project they'd like to work in.
+    This should return the base page, typically where the user would pick which project they'd
+    like to work in.
     :return: 200 if successful
              500 if an error occurs
     '''
     try:
         projects = Project.listprojects()
-        settings = PrettySiteSettings.listsettings()
+        site_settings = PrettySiteSettings.listsettings()
         name = PrettySiteSettings.getsettingvalue("Name")
-        return render_template('project.html', name=name, projects=projects, settings=settings)
-    except:
+        return render_template('project.html', name=name, projects=projects, settings=site_settings)
+    except Exception, err:
+        print err
         return ('', 500)
 
 @app.route('/<int:projectid>', methods=['GET'])
 def project_overview(projectid):
     '''
-
-    :param projectid:
-    :return:
+    This route should return the base page of a project, displaying aggregated results of all test suites.
+    :param projectid: int - This should be the ID of an existing project.
+    :return: 200 returns html page template and a variety of params to the template.
+             500 if an error occurs
     '''
     try:
         tl = Suite.timeline(projectid)
-        settings = PrettySiteSettings.listsettings()
+        site_settings = PrettySiteSettings.listsettings()
         project = Project.getprojectdetails(projectid)[0]
         project_desc = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
         print project_desc
-        timeline = [[],[],[],[]] # skip, error, fail, pass
+        timeline = [[], [], [], []] # skip, error, fail, pass
         dates = []
         for t in tl:
             timeline[0].append(t[3])
@@ -50,10 +60,11 @@ def project_overview(projectid):
             timeline[2].append(t[1])
             timeline[3].append(t[0])
             dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
-        suitelist =  [item for item in Suite.get_suites_by_project(projectid).items()]
+        suitelist = [item for item in Suite.get_suites_by_project(projectid).items()]
         name = PrettySiteSettings.getsettingvalue("Name")
-        return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=settings, project_desc=project_desc)
-    except:
+        return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=site_settings, project_desc=project_desc)
+    except Exception, err:
+        print err
         return ('', 500)
 
 
@@ -62,18 +73,18 @@ def project_overview(projectid):
 @app.route('/<int:projectid>/<int:suiteid>', methods=['GET'])
 def suite_overview(suiteid, projectid):
     '''
-
-    :param suiteid:
-    :param projectid:
-    :return:
+    This call returns the aggregated results for a test suite within a project
+    :param suiteid: int - existing suite id
+    :param projectid: int - existing project id, the suiteid above should belong to this project.
+    :return: 200 returns html page template and a variety of params to the template.
+             500 if an error occurs
     '''
     try:
         tl = Suite.timeline(projectid)
-        settings = PrettySiteSettings.listsettings()
+        site_settings = PrettySiteSettings.listsettings()
         project = Project.getprojectdetails(projectid)[0]
         project_desc = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
-        print project_desc
-        timeline = [[],[],[],[]] # skip, error, fail, pass
+        timeline = [[], [], [], []] # skip, error, fail, pass
         dates = []
         for t in tl:
             timeline[0].append(t[3])
@@ -94,8 +105,9 @@ def suite_overview(suiteid, projectid):
             suiteResults = Suite.results(suiteid)
             caseList = [[case.id, case.TestCaseName, case.DateRun]
                         for case in TestCase.get_testcase_by_suiteid(suiteid)]
+
             caseResults = [[case.PassCount, case.FailCount, case.ErrorCount, case.SkipCount]
-                            for case in TestCase.get_testcase_by_suiteid(suiteid)]
+                           for case in TestCase.get_testcase_by_suiteid(suiteid)]
 
             testResults = []
             for i, case in enumerate(caseList):
@@ -115,10 +127,11 @@ def suite_overview(suiteid, projectid):
                                    suite_results=suiteResults, testcaseslist=caseList,
                                    suiteid=suiteid, caseresults=caseResults,
                                    testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails,
-                                   settings=settings, project_desc=project_desc)
+                                   settings=site_settings, project_desc=project_desc)
         else:
             return '', 404
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 
@@ -139,7 +152,8 @@ def version():
     '''
     try:
         return (app.config['VERSION'], 200)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 
@@ -153,19 +167,20 @@ def settings():
              500 if there was an error
     '''
     try:
-        settings = PrettySiteSettings.listsettings()
-        data = {'version' : settings[0][1], 'name' : settings[1][1], 'api_tokens_enabled' : settings[2][1]}
+        site_settings = PrettySiteSettings.listsettings()
+        data = {'version' : site_settings[0][1], 'name' : site_settings[1][1], 'api_tokens_enabled' : site_settings[2][1]}
         if data['api_tokens_enabled'] == 'True':
-            if settings[3][0] == 'Key2':
-                data['Key2'] = settings[3][1]
-            if settings[3][0] == 'Key1':
-                data['Key1'] = settings[3][1]
-            if settings[4][0] == 'Key2':
-                data['Key2'] = settings[4][1]
-            if settings[4][0] == 'Key1':
-                data['Key1'] = settings[4][1]
+            if site_settings[3][0] == 'Key2':
+                data['Key2'] = site_settings[3][1]
+            if site_settings[3][0] == 'Key1':
+                data['Key1'] = site_settings[3][1]
+            if site_settings[4][0] == 'Key2':
+                data['Key2'] = site_settings[4][1]
+            if site_settings[4][0] == 'Key1':
+                data['Key1'] = site_settings[4][1]
         return (str(json.dumps(data)), 200)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 @app.route('/settings', methods=['POST'])
@@ -185,13 +200,14 @@ def update_settings():
         newKeys = {}
         for key, val in content.items():
             if val[1] == "False":
-                PrettySiteSettings.setsettingvalue(key,val[0])
+                PrettySiteSettings.setsettingvalue(key, val[0])
             if key == "Key1" or key == "Key2":
                 newKeys[key] = val[0]
         keyHandler = APIKey()
         APIToken.replaceAPItoken(keyHandler.createMasterKey(newKeys["Key1"], newKeys["Key2"]))
         return '', 200
-    except:
+    except Exception, err:
+        print err
         return '', 500
 
 
@@ -220,7 +236,8 @@ def add_results():
           {
             "test-name": {string},
             "message": null or {string},
-            "result": {string}
+            "result": {string},
+            "time": {float}
           }
         ]
       }
@@ -263,25 +280,26 @@ def add_results():
         else:
             APIV = APIHandler()
             if request.headers.get('content-type') == 'application/json':
-                    content = request.get_json(silent=True)
-                    if APIV.is_v1(content):
-                        # Parse Project
-                        APIV.project_parser_v1(content)
-                        # Parse Server
-                        APIV.server_parser_v1(content)
-                        # Parse Suite
-                        APIV.suite_parser_v1(content)
-                        # Parse TestCases and Tests
-                        APIV.tests_parser_v1(content)
-                        return ('', 200)
-                    else:
-                        return ('unsupported PU json version', 400)
+                content = request.get_json(silent=True)
+                if APIV.is_v1(content):
+                    # Parse Project
+                    APIV.project_parser_v1(content)
+                    # Parse Server
+                    APIV.server_parser_v1(content)
+                    # Parse Suite
+                    APIV.suite_parser_v1(content)
+                    # Parse TestCases and Tests
+                    APIV.tests_parser_v1(content)
+                    return ('', 200)
+                else:
+                    return ('unsupported PU json version', 400)
             elif request.headers.get('content-type') == 'application/xml':
                 print 'xml request'
                 return ('xml support underway', 400)
             else:
                 return ('non-json format not yet supported', 400)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 
@@ -301,7 +319,8 @@ def generate_tokens():
         k2 = keygen.generateKey()
         data = {"Key1" : k1, "Key2" : k2}
         return (str(json.dumps(data)), 200)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 @app.route('/usetokens', methods=['GET'])
@@ -318,7 +337,8 @@ def usertokens():
             return ('', 200)
         else:
             return ('', 404)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
 
 
@@ -335,7 +355,7 @@ def update_project(projectid):
         'Description': {string},
         'Language': {string}
     }
-    :param projectid: Int - This should be the ID of an existing project.
+    :param projectid: int - This should be the ID of an existing project.
     :return: 200 if successful
              404 if the project does not exist
              500 if there was an error
@@ -345,7 +365,8 @@ def update_project(projectid):
             content = request.get_json(silent=True)
             Project.setprojectfields(projectid, content)
             return ('', 200)
-        except:
+        except Exception, err:
+            print err
             return ('', 500)
     return ('', 404)
 
@@ -353,7 +374,7 @@ def update_project(projectid):
 def get_project(projectid):
     '''
     This call should return a json object with the details for an existing project.
-    :param projectid: Int - This should be the ID of an existing project.
+    :param projectid: int - This should be the ID of an existing project.
     :return: 200 if successful
              404 if the project does not exist
              500 if there was an error
@@ -363,7 +384,8 @@ def get_project(projectid):
             project = Project.getprojectdetails(projectid)[0]
             data = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
             return (str(json.dumps(data)), 200)
-        except:
+        except Exception, err:
+            print err
             return ('', 500)
     return ('', 404)
 
@@ -377,5 +399,6 @@ def list_projects():
     try:
         projects = Project.listprojects()
         return (str(json.dumps(projects)), 200)
-    except:
+    except Exception, err:
+        print err
         return ('', 500)
