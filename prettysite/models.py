@@ -85,6 +85,7 @@ class TestCase(db.Model):
     ErrorCount = db.Column(db.Integer,nullable=False, default=0)
     SkipCount = db.Column(db.Integer,nullable=False, default=0)
     DateRun = db.Column(db.DateTime, default=datetime.utcnow())
+    Time = db.Column(db.Float, nullable=False, default=0.0)
     tests = db.relationship('Test', backref='testcase', lazy='dynamic')
 
     @staticmethod
