@@ -17,7 +17,7 @@ from prettysite.APIKey import APIKey
 if app.config['DEBUG']:
     import logging
     logger = logging.getLogger('werkzeug')
-    logger.setLevel(logging.ERROR)
+    logger.setLevel(logging.DEBUG)
 
 
 # ----------------------------------------------------------------------------------------
@@ -47,19 +47,7 @@ def project_overview(projectid):
              500 if an error occurs
     '''
     try:
-        tl = Suite.timeline(projectid)
-        site_settings = PrettySiteSettings.listsettings()
-        project = Project.getprojectdetails(projectid)[0]
-        project_desc = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
-        print project_desc
-        timeline = [[], [], [], []] # skip, error, fail, pass
-        dates = []
-        for t in tl:
-            timeline[0].append(t[3])
-            timeline[1].append(t[2])
-            timeline[2].append(t[1])
-            timeline[3].append(t[0])
-            dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
+        dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
         suitelist = [item for item in Suite.get_suites_by_project(projectid).items()]
         name = PrettySiteSettings.getsettingvalue("Name")
         return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=site_settings, project_desc=project_desc)
@@ -80,19 +68,7 @@ def suite_overview(suiteid, projectid):
              500 if an error occurs
     '''
     try:
-        tl = Suite.timeline(projectid)
-        site_settings = PrettySiteSettings.listsettings()
-        project = Project.getprojectdetails(projectid)[0]
-        project_desc = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
-        timeline = [[], [], [], []] # skip, error, fail, pass
-        dates = []
-        for t in tl:
-            timeline[0].append(t[3])
-            timeline[1].append(t[2])
-            timeline[2].append(t[1])
-            timeline[3].append(t[0])
-            dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
-
+        dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
         suiteDetails = []
         details = Suite.get_suite_details(suiteid)
         suiteDetails.append(["Pass Rate", str(details[0])])
@@ -402,3 +378,27 @@ def list_projects():
     except Exception, err:
         print err
         return ('', 500)
+
+
+
+# -------------------------------- Helpers ------------------------------------------------
+# -----------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------
+
+def details_from_project_id(projectid):
+    try:
+        tl = Suite.timeline(projectid)
+        site_settings = PrettySiteSettings.listsettings()
+        project = Project.getprojectdetails(projectid)[0]
+        project_desc = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
+        timeline = [[], [], [], []] # skip, error, fail, pass
+        dates = []
+        for t in tl:
+            timeline[0].append(t[3])
+            timeline[1].append(t[2])
+            timeline[2].append(t[1])
+            timeline[3].append(t[0])
+            dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
+        return (dates, timeline, site_settings, project_desc)
+    except:
+        pass
