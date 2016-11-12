@@ -5,7 +5,7 @@ ascott 10/2016
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
-class junitParse():
+class JunitParse():
 
 	def testcase_parse(self, suite):
 		testcases = []
@@ -77,7 +77,7 @@ class junitParse():
 		return suite_details
 
 	def junit_parse(self, xml):
-		tree = ET.parse(xml)
+		tree = ET.ElementTree(ET.fromstring(xml))
 		root = tree.getroot()
 		json = []
 
