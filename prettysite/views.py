@@ -7,6 +7,7 @@ import json
 from flask import render_template, request
 from prettysite import app
 from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken
+from prettysite.JunitParse import JunitParse
 from prettysite.APIValidation import APIHandler
 from prettysite.APIKey import APIKey
 
@@ -172,7 +173,6 @@ def update_settings():
     '''
     try:
         content = request.get_json(silent=True)
-        print content
         newKeys = {}
         for key, val in content.items():
             if val[1] == "False":
@@ -231,47 +231,29 @@ def add_results():
             keys = json.loads(keyHeader)
             token = keygen.createMasterKey(keys["Key1"], keys["Key2"])
             if APIToken.validateToken(token):
-                APIV = APIHandler()
                 if request.headers.get('content-type') == 'application/json':
                     content = request.get_json(silent=True)
-                    if APIV.is_v1(content):
-                        # Parse Project
-                        APIV.project_parser_v1(content)
-                        # Parse Server
-                        APIV.server_parser_v1(content)
-                        # Parse Suite
-                        APIV.suite_parser_v1(content)
-                        # Parse TestCases and Tests
-                        APIV.tests_parser_v1(content)
-                        return ('', 200)
-                    else:
-                        return ('unsupported PU json version', 400)
+                    return json_parsing_loop(content)
                 elif request.headers.get('content-type') == 'application/xml':
                     print 'xml request'
-                    return ('xml support underway', 400)
+                    data = request.get_data()
+                    jp = JunitParse()
+                    content = jp.add_project(jp.junit_parse(data))
+                    return json_parsing_loop(content)
                 else:
                     return ('non-json format not yet supported', 400)
             else:
                 return ('Invalid token', 401)
         else:
-            APIV = APIHandler()
             if request.headers.get('content-type') == 'application/json':
                 content = request.get_json(silent=True)
-                if APIV.is_v1(content):
-                    # Parse Project
-                    APIV.project_parser_v1(content)
-                    # Parse Server
-                    APIV.server_parser_v1(content)
-                    # Parse Suite
-                    APIV.suite_parser_v1(content)
-                    # Parse TestCases and Tests
-                    APIV.tests_parser_v1(content)
-                    return ('', 200)
-                else:
-                    return ('unsupported PU json version', 400)
+                return json_parsing_loop(content)
             elif request.headers.get('content-type') == 'application/xml':
                 print 'xml request'
-                return ('xml support underway', 400)
+                data = request.get_data()
+                jp = JunitParse()
+                content = jp.add_project(jp.junit_parse(data))
+                return json_parsing_loop(content)
             else:
                 return ('non-json format not yet supported', 400)
     except Exception, err:
@@ -402,3 +384,19 @@ def details_from_project_id(projectid):
         return (dates, timeline, site_settings, project_desc)
     except:
         pass
+
+def json_parsing_loop(content):
+    APIV = APIHandler()
+    for i in range(0, len(content)):
+        if APIV.is_v1(content[i]):
+            # Parse Project
+            APIV.project_parser_v1(content[i])
+            # Parse Server
+            APIV.server_parser_v1(content[i])
+            # Parse Suite
+            APIV.suite_parser_v1(content[i])
+            # Parse TestCases and Tests
+            APIV.tests_parser_v1(content[i])
+        else:
+            return ('unsupported PU json version', 400)
+        return ('', 200)
