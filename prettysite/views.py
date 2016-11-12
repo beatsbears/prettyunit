@@ -172,7 +172,6 @@ def update_settings():
     '''
     try:
         content = request.get_json(silent=True)
-        print content
         newKeys = {}
         for key, val in content.items():
             if val[1] == "False":
@@ -234,18 +233,19 @@ def add_results():
                 APIV = APIHandler()
                 if request.headers.get('content-type') == 'application/json':
                     content = request.get_json(silent=True)
-                    if APIV.is_v1(content):
-                        # Parse Project
-                        APIV.project_parser_v1(content)
-                        # Parse Server
-                        APIV.server_parser_v1(content)
-                        # Parse Suite
-                        APIV.suite_parser_v1(content)
-                        # Parse TestCases and Tests
-                        APIV.tests_parser_v1(content)
-                        return ('', 200)
-                    else:
-                        return ('unsupported PU json version', 400)
+                    for i in range(0, len(content)):
+                        if APIV.is_v1(content[i]):
+                            # Parse Project
+                            APIV.project_parser_v1(content[i])
+                            # Parse Server
+                            APIV.server_parser_v1(content[i])
+                            # Parse Suite
+                            APIV.suite_parser_v1(content[i])
+                            # Parse TestCases and Tests
+                            APIV.tests_parser_v1(content[i])
+                        else:
+                            return ('unsupported PU json version', 400)
+                    return ('', 200)
                 elif request.headers.get('content-type') == 'application/xml':
                     print 'xml request'
                     return ('xml support underway', 400)
@@ -257,18 +257,19 @@ def add_results():
             APIV = APIHandler()
             if request.headers.get('content-type') == 'application/json':
                 content = request.get_json(silent=True)
-                if APIV.is_v1(content):
-                    # Parse Project
-                    APIV.project_parser_v1(content)
-                    # Parse Server
-                    APIV.server_parser_v1(content)
-                    # Parse Suite
-                    APIV.suite_parser_v1(content)
-                    # Parse TestCases and Tests
-                    APIV.tests_parser_v1(content)
-                    return ('', 200)
-                else:
-                    return ('unsupported PU json version', 400)
+                for i in range(0, len(content)):
+                    if APIV.is_v1(content[i]):
+                        # Parse Project
+                        APIV.project_parser_v1(content[i])
+                        # Parse Server
+                        APIV.server_parser_v1(content[i])
+                        # Parse Suite
+                        APIV.suite_parser_v1(content[i])
+                        # Parse TestCases and Tests
+                        APIV.tests_parser_v1(content[i])
+                    else:
+                        return ('unsupported PU json version', 400)
+                return ('', 200)
             elif request.headers.get('content-type') == 'application/xml':
                 print 'xml request'
                 return ('xml support underway', 400)
@@ -276,6 +277,7 @@ def add_results():
                 return ('non-json format not yet supported', 400)
     except Exception, err:
         print err
+        print "still"
         return ('', 500)
 
 

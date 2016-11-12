@@ -1,3 +1,8 @@
+'''
+prettyunit json parsing & helper methods
+ascott 10/2016
+'''
+
 
 from dateutil.parser import parse
 from prettysite import db
@@ -51,9 +56,8 @@ class APIHandler():
 
     def tests_parser_v1(self, json):
         testData = json['test-cases']
-        dateRun = parse(json['timestamp'])
+        dateRun = parse(str(json['timestamp']))
         suite = json['suite-name']
-        print suite
         for testcase, data in testData.items():
             self.testcase_parser_v1(testcase, data, dateRun, suite)
             testCaseId = TestCase.gettestcaseid(testcase, dateRun)
@@ -69,7 +73,7 @@ class APIHandler():
 
     def suite_parser_v1(self, json):
         suiteName = json['suite-name']
-        dateRun = parse(json['timestamp'])
+        dateRun = parse(str(json['timestamp']))
         testType = 'unittest'
         testCount = self.assign_or_default(json['test-to-run'],0)
         testFail = self.assign_or_default(json['tests-failure'],0)
