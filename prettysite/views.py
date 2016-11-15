@@ -3,7 +3,8 @@ Andrew Scott 10/21/2016"""
 
 #pylint: disable=line-too-long, invalid-name, bare-except, broad-except
 import json
-
+import datetime
+import logging
 from flask import render_template, request
 from prettysite import app
 from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken
@@ -12,14 +13,48 @@ from prettysite.APIValidation import APIHandler
 from prettysite.APIKey import APIKey
 
 
+# ---------------------------------------Logging---------------------------------------------
+LOG_FILENAME = 'logs/prettyunit.log'
 
+# if not app.config['DEBUG']:
+#     app.logger.setLevel(logging.INFO)
+# else:
+app.logger.setLevel(logging.INFO)
 
+handler = logging.handlers.RotatingFileHandler(
+    LOG_FILENAME,
+    maxBytes=1024 * 1024 * 100,
+    backupCount=20
+    )
 
-if app.config['DEBUG']:
-    import logging
-    logger = logging.getLogger('werkzeug')
-    logger.setLevel(logging.DEBUG)
+app.logger.addHandler(handler)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
 
+@app.before_request
+def pre_request_logging():
+    #Logging statement
+    if 'text/html' in request.headers['Accept']:
+        if app.config['DEBUG']:
+            app.logger.debug(' - '.join([
+            datetime.datetime.today().ctime(),
+            request.remote_addr,
+            request.method,
+            request.url,
+            ', '.join([': '.join(x) for x in request.headers])]))
+        else:
+            app.logger.info(' - '.join([
+            datetime.datetime.today().ctime(),
+            request.remote_addr,
+            request.method,
+            request.url]))
+
+@app.after_request
+def log_the_status_code(response):
+    status_as_string = response.status
+    if response.status_code >= 400:
+        app.logger.error(status_as_string)
+    return response
 
 # ----------------------------------------------------------------------------------------
 @app.route('/', methods=['GET'])
@@ -36,7 +71,7 @@ def index():
         name = PrettySiteSettings.getsettingvalue("Name")
         return render_template('project.html', name=name, projects=projects, settings=site_settings)
     except Exception, err:
-        print err
+        app.logger.error(' Error in base page call: {}'.format(err))
         return ('', 500)
 
 @app.route('/<int:projectid>', methods=['GET'])
@@ -48,12 +83,16 @@ def project_overview(projectid):
              500 if an error occurs
     '''
     try:
-        dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
-        suitelist = [item for item in Suite.get_suites_by_project(projectid).items()]
-        name = PrettySiteSettings.getsettingvalue("Name")
-        return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=site_settings, project_desc=project_desc)
+        if Project.does_exist(projectid):
+            dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
+            suitelist = [item for item in Suite.get_suites_by_project(projectid).items()]
+            name = PrettySiteSettings.getsettingvalue("Name")
+            return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=site_settings, project_desc=project_desc)
+        else:
+            app.logger.error('Project ID not found: {}'.format(projectid))
+            return ('', 404)
     except Exception, err:
-        print err
+        app.logger.error('Error in project call: {}'.format(err))
         return ('', 500)
 
 
@@ -69,46 +108,51 @@ def suite_overview(suiteid, projectid):
              500 if an error occurs
     '''
     try:
-        dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
-        suiteDetails = []
-        details = Suite.get_suite_details(suiteid)
-        suiteDetails.append(["Pass Rate", str(details[0])])
-        suiteDetails.append(["Last Run", str(details[1])])
-        suiteDetails.append(["Project Name", str(details[2])])
-        suiteDetails.append(["Server", str(details[3])])
-        suiteDetails.append(["Platform", str(details[4])])
+        if Project.does_exist(projectid):
+            dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
+            suiteDetails = []
+            details = Suite.get_suite_details(suiteid)
+            suiteDetails.append(["Pass Rate", str(details[0])])
+            suiteDetails.append(["Last Run", str(details[1])])
+            suiteDetails.append(["Project Name", str(details[2])])
+            suiteDetails.append(["Server", str(details[3])])
+            suiteDetails.append(["Platform", str(details[4])])
 
-        if Suite.does_exist(suiteid):
-            suiteResults = Suite.results(suiteid)
-            caseList = [[case.id, case.TestCaseName, case.DateRun]
-                        for case in TestCase.get_testcase_by_suiteid(suiteid)]
+            if Suite.does_exist(suiteid):
+                suiteResults = Suite.results(suiteid)
+                caseList = [[case.id, case.TestCaseName, case.DateRun]
+                            for case in TestCase.get_testcase_by_suiteid(suiteid)]
 
-            caseResults = [[case.PassCount, case.FailCount, case.ErrorCount, case.SkipCount]
-                           for case in TestCase.get_testcase_by_suiteid(suiteid)]
+                caseResults = [[case.PassCount, case.FailCount, case.ErrorCount, case.SkipCount]
+                               for case in TestCase.get_testcase_by_suiteid(suiteid)]
 
-            testResults = []
-            for i, case in enumerate(caseList):
-                testResults.append([])
-                for test in Test.get_test_by_testcaseid(case[0]):
-                    testResults[i].append([test.TestName, test.Message, test.Result])
+                testResults = []
+                for i, case in enumerate(caseList):
+                    testResults.append([])
+                    for test in Test.get_test_by_testcaseid(case[0]):
+                        testResults[i].append([test.TestName, test.Message, test.Result])
 
-            caseToDisplay = (0 if request.args.get('case') is None else int(request.args.get('case')))
-            if caseToDisplay != 0:
-                for i, c in enumerate(caseList):
-                    if c[0] == int(caseToDisplay):
-                        caseToDisplay = i
+                caseToDisplay = (0 if request.args.get('case') is None else int(request.args.get('case')))
+                if caseToDisplay != 0:
+                    for i, c in enumerate(caseList):
+                        if c[0] == int(caseToDisplay):
+                            caseToDisplay = i
 
-            name = PrettySiteSettings.getsettingvalue("Name")
+                name = PrettySiteSettings.getsettingvalue("Name")
 
-            return render_template('suite.html', timeline=timeline, name=name, timeline_dates=dates,
-                                   suite_results=suiteResults, testcaseslist=caseList,
-                                   suiteid=suiteid, caseresults=caseResults,
-                                   testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails,
-                                   settings=site_settings, project_desc=project_desc)
+                return render_template('suite.html', timeline=timeline, name=name, timeline_dates=dates,
+                                       suite_results=suiteResults, testcaseslist=caseList,
+                                       suiteid=suiteid, caseresults=caseResults,
+                                       testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails,
+                                       settings=site_settings, project_desc=project_desc)
+            else:
+                app.logger.error('Suite ID not found: {}'.format(suiteid))
+                return '', 404
         else:
-            return '', 404
+            app.logger.error('Project ID not found: {}'.format(projectid))
+            return ('', 404)
     except Exception, err:
-        print err
+        app.logger.error('Error in suite call: {}'.format(err))
         return ('', 500)
 
 
@@ -130,7 +174,7 @@ def version():
     try:
         return (app.config['VERSION'], 200)
     except Exception, err:
-        print err
+        app.logger.error('Error in version call: {}'.format(err))
         return ('', 500)
 
 
@@ -157,7 +201,7 @@ def settings():
                 data['Key1'] = site_settings[4][1]
         return (str(json.dumps(data)), 200)
     except Exception, err:
-        print err
+        app.logger.error('Error in settings call: {}'.format(err))
         return ('', 500)
 
 @app.route('/settings', methods=['POST'])
@@ -183,7 +227,7 @@ def update_settings():
         APIToken.replaceAPItoken(keyHandler.createMasterKey(newKeys["Key1"], newKeys["Key2"]))
         return '', 200
     except Exception, err:
-        print err
+        app.logger.error('Error in settings call: {}'.format(err))
         return '', 500
 
 
@@ -235,29 +279,39 @@ def add_results():
                     content = request.get_json(silent=True)
                     return json_parsing_loop(content)
                 elif request.headers.get('content-type') == 'application/xml':
-                    print 'xml request'
                     data = request.get_data()
                     jp = JunitParse()
                     content = jp.add_project(jp.junit_parse(data))
-                    return json_parsing_loop(content)
+                    return json_parsing_loop(content[0])
                 else:
+                    if request.headers.get('content-type') != None:
+                        app.logger.error('Invalid format in attempt: {}'.format(request.headers.get('content-type')))
+                    else:
+                        app.logger.error('Content-Type header missing in request')
                     return ('non-json format not yet supported', 400)
             else:
+                app.logger.error('Invalid token in attempt: {}'.format(keys))
                 return ('Invalid token', 401)
         else:
             if request.headers.get('content-type') == 'application/json':
                 content = request.get_json(silent=True)
+                print json_parsing_loop(content)
                 return json_parsing_loop(content)
             elif request.headers.get('content-type') == 'application/xml':
-                print 'xml request'
                 data = request.get_data()
                 jp = JunitParse()
                 content = jp.add_project(jp.junit_parse(data))
-                return json_parsing_loop(content)
+                for i in range(0, len(content)):
+                    json_parsing_loop(content[i])
+                return ('', 200)
             else:
+                if request.headers.get('content-type') != None:
+                    app.logger.error('Invalid format in attempt: {}'.format(request.headers.get('content-type')))
+                else:
+                    app.logger.error('Content-Type header missing in request')
                 return ('non-json format not yet supported', 400)
     except Exception, err:
-        print err
+        app.logger.error('Error in api/results call: {}'.format(err))
         return ('', 500)
 
 
@@ -278,7 +332,7 @@ def generate_tokens():
         data = {"Key1" : k1, "Key2" : k2}
         return (str(json.dumps(data)), 200)
     except Exception, err:
-        print err
+        app.logger.error('Error in token call: {}'.format(err))
         return ('', 500)
 
 @app.route('/usetokens', methods=['GET'])
@@ -294,9 +348,10 @@ def usertokens():
         if keygen.areTokensEnabledAndExist():
             return ('', 200)
         else:
+            app.logger.error('Tokens are not populated or are not enabled for this user')
             return ('', 404)
     except Exception, err:
-        print err
+        app.logger.error('Error in token call: {}'.format(err))
         return ('', 500)
 
 
@@ -324,8 +379,9 @@ def update_project(projectid):
             Project.setprojectfields(projectid, content)
             return ('', 200)
         except Exception, err:
-            print err
+            app.logger.error('Error in project details PUT call: {}'.format(err))
             return ('', 500)
+    app.logger.error('Project ID not found: {}'.format(projectid))
     return ('', 404)
 
 @app.route('/project/<int:projectid>', methods=['GET'])
@@ -343,8 +399,9 @@ def get_project(projectid):
             data = {'id' : project[0], 'name' : project[1], 'description' : project[2], 'language' : project[3], 'url' : project[4]}
             return (str(json.dumps(data)), 200)
         except Exception, err:
-            print err
+            app.logger.error('Error in project details GET call: {}'.format(err))
             return ('', 500)
+    app.logger.error('Project ID not found: {}'.format(projectid))
     return ('', 404)
 
 @app.route('/project', methods=['GET'])
@@ -358,7 +415,7 @@ def list_projects():
         projects = Project.listprojects()
         return (str(json.dumps(projects)), 200)
     except Exception, err:
-        print err
+        app.logger.error('Error in project call: {}'.format(err))
         return ('', 500)
 
 
@@ -382,21 +439,21 @@ def details_from_project_id(projectid):
             timeline[3].append(t[0])
             dates.append(t[4].strftime("%m/%d/%y %H:%M UTC"))
         return (dates, timeline, site_settings, project_desc)
-    except:
+    except Exception, err:
+        app.logger.error('Error in project details helper call: {}'.format(err))
         pass
 
 def json_parsing_loop(content):
     APIV = APIHandler()
-    for i in range(0, len(content)):
-        if APIV.is_v1(content[i]):
-            # Parse Project
-            APIV.project_parser_v1(content[i])
-            # Parse Server
-            APIV.server_parser_v1(content[i])
-            # Parse Suite
-            APIV.suite_parser_v1(content[i])
-            # Parse TestCases and Tests
-            APIV.tests_parser_v1(content[i])
-        else:
-            return ('unsupported PU json version', 400)
-        return ('', 200)
+    if APIV.is_v1(content):
+        # Parse Project
+        APIV.project_parser_v1(content)
+        # Parse Server
+        APIV.server_parser_v1(content)
+        # Parse Suite
+        APIV.suite_parser_v1(content)
+        # Parse TestCases and Tests
+        APIV.tests_parser_v1(content)
+    else:
+        return ('unsupported PU json version', 400)
+    return ('', 200)
