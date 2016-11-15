@@ -6,7 +6,7 @@ import json
 import datetime
 import logging
 from flask import render_template, request
-from prettysite import app
+from prettysite import app, config
 from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken
 from prettysite.JunitParse import JunitParse
 from prettysite.APIValidation import APIHandler
@@ -172,7 +172,7 @@ def version():
              500 if there is an issue
     '''
     try:
-        return (app.config['VERSION'], 200)
+        return (config.VERSION, 200)
     except Exception, err:
         app.logger.error('Error in version call: {}'.format(err))
         return ('', 500)
