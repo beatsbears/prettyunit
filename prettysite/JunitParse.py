@@ -16,7 +16,7 @@ class JunitParse():
 				if 'message' in testcase.find('error').attrib:
 					testcase_dict['message'] = "{} : {}".format(testcase.find('error').attrib['message'],testcase.find('error').text)
 				else:
-					testcase_dictb['message'] = "{}".format(testcase.find('error').text)
+					testcase_dict['message'] = "{}".format(testcase.find('error').text)
 			elif testcase.find('failure') != None:
 				testcase_dict['result'] = 'failure'
 				if 'message' in testcase.find('failure').attrib:

@@ -4,7 +4,7 @@ from prettysite import app, db, APIKey
 from prettysite.models import Suite, TestCase, Test, Server, Project, PrettySiteSettings, APIToken
 from flask_script import Manager, prompt_bool
 from flask_migrate import Migrate, MigrateCommand
-
+import logging
 
 manager = Manager(app)
 migrate = Migrate(app, db)
@@ -26,7 +26,7 @@ def create_test_data():
     db.session.add(Test(TestCaseId=2, TestName='error_test', Message='Stacktrace: blahh', Result='error'))
     db.session.add(Test(TestCaseId=2, TestName='failed_test', Message='1 != 2', Result='failure'))
     db.session.commit()
-    print '[+] Test data added to the database'
+    print('[+] Test data added to the database')
 
 @manager.command
 def set_default_settings():
@@ -35,14 +35,14 @@ def set_default_settings():
     db.session.add(PrettySiteSettings(Name="Name",Value=" prettyunit.", Type="String", Locked=False))
     db.session.add(PrettySiteSettings(Name="API Tokens Enabled",Value="False", Type="Bool", Locked=False))
     db.session.commit()
-    print '[+] Default settings added successfully'
+    print('[+] Default settings added successfully')
 
 @manager.command
 def dropdb():
     "Drops database tables"
-    if prompt_bool("Are you sure you want to lose all your data"):
+    if prompt_bool("Are you sure you want to lose all your data?"):
         db.drop_all()
-        print 'Dropped the database'
+        print('[+] Dropped the database')
 
 @manager.command
 def _dropdb_script():
