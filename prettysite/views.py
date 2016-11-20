@@ -72,7 +72,7 @@ def index():
         return render_template('project.html', name=name, projects=projects, settings=site_settings)
     except Exception, err:
         app.logger.error(' Error in base page call: {}'.format(err))
-        return ('', 500)
+        return render_template('500.html'), 500
 
 @app.route('/<int:projectid>', methods=['GET'])
 def project_overview(projectid):
@@ -90,10 +90,10 @@ def project_overview(projectid):
             return render_template('index.html', timeline=timeline, name=name, timeline_dates=dates, suitelist=suitelist, settings=site_settings, project_desc=project_desc)
         else:
             app.logger.error('Project ID not found: {}'.format(projectid))
-            return ('', 404)
+            return render_template('404.html'), 404
     except Exception, err:
         app.logger.error('Error in project call: {}'.format(err))
-        return ('', 500)
+        return render_template('500.html'), 500
 
 
 
@@ -109,6 +109,7 @@ def suite_overview(suiteid, projectid):
     '''
     try:
         if Project.does_exist(projectid):
+            raise_error = None
             dates, timeline, site_settings, project_desc = details_from_project_id(projectid)
             suiteDetails = []
             details = Suite.get_suite_details(suiteid)
@@ -125,39 +126,51 @@ def suite_overview(suiteid, projectid):
 
                 caseResults = [[case.PassCount, case.FailCount, case.ErrorCount, case.SkipCount]
                                for case in TestCase.get_testcase_by_suiteid(suiteid)]
-
                 testResults = []
-                for i, case in enumerate(caseList):
-                    testResults.append([])
-                    for test in Test.get_test_by_testcaseid(case[0]):
-                        testResults[i].append([test.TestName, test.Message, test.Result])
+                if len(caseList) > 0:
+                    for i, case in enumerate(caseList):
+                        testResults.append([])
+                        # if length of list if greater than 0
+                        list_of_tests = Test.get_test_by_testcaseid(case[0])
+                        if len(list_of_tests) > 0:
+                            for test in list_of_tests:
+                                testResults[i].append([test.TestName, test.Message, test.Result])
+                        else:
+                            raise_error = 'No Tests to display.'
 
-                caseToDisplay = (0 if request.args.get('case') is None else int(request.args.get('case')))
-                if caseToDisplay != 0:
-                    for i, c in enumerate(caseList):
-                        if c[0] == int(caseToDisplay):
-                            caseToDisplay = i
+                    caseToDisplay = (0 if request.args.get('case') is None else int(request.args.get('case')))
+                    if caseToDisplay != 0:
+                        for i, c in enumerate(caseList):
+                            if c[0] == int(caseToDisplay):
+                                caseToDisplay = i
+                else:
+                    caseToDisplay = 0
+                    raise_error = "No Test Cases to display."
 
                 name = PrettySiteSettings.getsettingvalue("Name")
-
                 return render_template('suite.html', timeline=timeline, name=name, timeline_dates=dates,
                                        suite_results=suiteResults, testcaseslist=caseList,
                                        suiteid=suiteid, caseresults=caseResults,
                                        testresults=testResults, casetodisplay=caseToDisplay, suitedetails=suiteDetails,
-                                       settings=site_settings, project_desc=project_desc)
+                                       settings=site_settings, project_desc=project_desc, raise_error=raise_error)
             else:
                 app.logger.error('Suite ID not found: {}'.format(suiteid))
-                return '', 404
+                return render_template('404.html'), 404
         else:
             app.logger.error('Project ID not found: {}'.format(projectid))
-            return ('', 404)
+            return render_template('404.html'), 404
     except Exception, err:
         app.logger.error('Error in suite call: {}'.format(err))
-        return ('', 500)
+        return render_template('500.html'), 500
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
-
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('500.html'), 500
 
 # -------------------------------- API ----------------------------------------------------
 # -----------------------------------------------------------------------------------------
@@ -218,7 +231,6 @@ def update_settings():
     try:
         content = request.get_json(silent=True)
         newKeys = {}
-        print content
         for key, val in content.items():
             if val[1] == "False":
                 PrettySiteSettings.setsettingvalue(key, val[0])
@@ -305,6 +317,7 @@ def add_results():
                 data = request.get_data()
                 jp = JunitParse()
                 content = jp.add_project(jp.junit_parse(data))
+                print content
                 for i in range(0, len(content)):
                     json_parsing_loop(content[i])
                 return ('', 200)

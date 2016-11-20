@@ -1,0 +1,40 @@
+<!--
+Ascott 11/20
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{% block title %} prettyunit {% endblock %}</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/siimple.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/Chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pu.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-3.0.0.min.js') }}"></script>
+</head>
+<body>
+<div class="content">
+    {%  block nav %}
+    <!-- Navbar -->
+    <div class="nav">
+        <!-- Logo -->
+        <a href="{{ url_for('index') }}" class="nav-logo">prettunit.</a>
+    </div>
+        <div id="project-header">
+        <h2>404 NOT FOUND</h2>
+        <a href="{{ url_for('index') }}"> Go home.</a>
+    </div>
+    <!-- Footer -->
+    <div class="footer" align="center">
+        <!-- Footer text -->
+        Built by <a href="https://drownedcoast.xyz/" target='_blank' >Drowned Coast</a>.
+        Made using <a href="http://siimple.juanes.xyz/" target='_blank' >Siimple</a> and <a href="http://www.chartjs.org/" target='_blank' >chart.js</a>.
+    </div>
+    {% endblock %}
+</div>
+</body>
+</html>
