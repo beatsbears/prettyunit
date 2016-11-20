@@ -104,7 +104,7 @@ class TestCase(db.Model):
         if TestCase.query.filter(TestCase.SuiteId == id).first() > 0:
             return TestCase.query.filter(TestCase.SuiteId == id).all()
         else:
-            return 0
+            return []
 
 
 ## --------------------------------- TEST ---------------------------------------------
@@ -132,7 +132,7 @@ class Test(db.Model):
         if Test.query.filter(Test.TestCaseId == id).first() > 0:
             return Test.query.filter(Test.TestCaseId == id).all()
         else:
-            return 0
+            return []
 
 ## --------------------------------- SERVER ---------------------------------------------
 class Server(db.Model):
@@ -263,20 +263,16 @@ class APIToken(db.Model):
 
     @staticmethod
     def replaceAPItoken(new_token):
-        print "Hit"
         try:
             if APIToken.query.filter(APIToken.id == 1).first() < 1:
-                print "Hit2"
                 db.session.add(APIToken(Token=new_token))
                 db.session.commit()
             else:
-                print "Hit3"
                 val = APIToken.query.filter(APIToken.id == 1).first()
                 val.token == new_token
                 db.session.commit()
             return True
         except:
-            print "Hit4"
             return False
 
     @staticmethod
