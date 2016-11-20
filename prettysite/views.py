@@ -14,7 +14,7 @@ from prettysite.APIKey import APIKey
 
 
 # ---------------------------------------Logging---------------------------------------------
-LOG_FILENAME = 'logs/prettyunit.log'
+LOG_FILENAME = config.LOG_PATH
 
 # if not app.config['DEBUG']:
 #     app.logger.setLevel(logging.INFO)
