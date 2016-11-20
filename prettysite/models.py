@@ -284,3 +284,5 @@ class APIToken(db.Model):
        if test_token == str(APIToken.query.with_entities(APIToken.Token).first()[0]):
            return True
        return False
+
+## ---------------------------- Internal -------------------------------------------------
