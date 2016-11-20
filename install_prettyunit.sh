@@ -6,7 +6,6 @@ echo "[+] Dropping old logs"
 mkdir logs
 touch logs/prettyunit.log
 echo "[+] Initializing new log file"
-pip install -r requirements.txt
 echo "[+] Requirements installed"
 rm -rf migrations
 python manage.py _dropdb_script >logs/prettyunit.log 2>&1
