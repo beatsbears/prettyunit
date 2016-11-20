@@ -190,7 +190,7 @@ def settings():
     try:
         site_settings = PrettySiteSettings.listsettings()
         data = {'version' : site_settings[0][1], 'name' : site_settings[1][1], 'api_tokens_enabled' : site_settings[2][1]}
-        if data['api_tokens_enabled'] == 'True':
+        if data['api_tokens_enabled'] == 'True' and len(site_settings) >= 4:
             if site_settings[3][0] == 'Key2':
                 data['Key2'] = site_settings[3][1]
             if site_settings[3][0] == 'Key1':
@@ -218,13 +218,17 @@ def update_settings():
     try:
         content = request.get_json(silent=True)
         newKeys = {}
+        print content
         for key, val in content.items():
             if val[1] == "False":
                 PrettySiteSettings.setsettingvalue(key, val[0])
-            if key == "Key1" or key == "Key2":
+            print type(key)
+            if key == 'Key1' or key == 'Key2':
                 newKeys[key] = val[0]
-        keyHandler = APIKey()
-        APIToken.replaceAPItoken(keyHandler.createMasterKey(newKeys["Key1"], newKeys["Key2"]))
+                PrettySiteSettings.setsettingvalue(key, val[0])
+        if len(newKeys) > 0:
+            keyHandler = APIKey()
+            APIToken.replaceAPItoken(keyHandler.createMasterKey(newKeys["Key1"], newKeys["Key2"]))
         return '', 200
     except Exception, err:
         app.logger.error('Error in settings call: {}'.format(err))
