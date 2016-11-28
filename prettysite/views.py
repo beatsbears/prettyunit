@@ -7,7 +7,7 @@ import datetime
 import logging
 from flask import render_template, request
 from prettysite import app, config
-from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken
+from prettysite.models import Suite, TestCase, Test, Project, PrettySiteSettings, APIToken, Internal
 from prettysite.JunitParse import JunitParse
 from prettysite.APIValidation import APIHandler
 from prettysite.APIKey import APIKey
@@ -436,6 +436,16 @@ def list_projects():
         return ('', 500)
 
 
+# -------------------------------- Project ------------------------------------------------
+@app.route('/properties', methods=['GET'])
+def get_properties():
+    try:
+        properties = Internal.getInternals(1)
+        prop = {"id": properties[0], "UUID": properties[1], "creation_date": properties[2].strftime("%m/%d/%y %H:%M UTC"), "creator": properties[3], "version": properties[4]}
+        return (str(json.dumps(prop)), 200)
+    except Exception, err:
+        app.logger.error('Error in properties call: {}'.format(err))
+        return ('', 500)
 
 # -------------------------------- Helpers ------------------------------------------------
 # -----------------------------------------------------------------------------------------

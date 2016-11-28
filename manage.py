@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-from prettysite import app, db, APIKey
-from prettysite.models import Suite, TestCase, Test, Server, Project, PrettySiteSettings, APIToken
+from prettysite import app, db, APIKey, config
+from prettysite.models import Suite, TestCase, Test, Server, Project, PrettySiteSettings, APIToken, Internal
 from flask_script import Manager, prompt_bool
 from flask_migrate import Migrate, MigrateCommand
 import logging
@@ -33,6 +33,10 @@ def set_default_settings():
     db.session.add(PrettySiteSettings(Name="Version",Value="0.1-ALPHA", Type="String"))
     db.session.add(PrettySiteSettings(Name="Name",Value=" prettyunit.", Type="String", Locked=False))
     db.session.add(PrettySiteSettings(Name="API Tokens Enabled",Value="False", Type="Bool", Locked=False))
+
+    ak = APIKey.Internals()
+    uuid = str(ak.generateUUID())
+    db.session.add(Internal(UUID=uuid, Creator="Default", Version=config.VERSION))
     db.session.commit()
     print('[+] Default settings added successfully')
 
