@@ -1,6 +1,7 @@
 import os
 import binascii
 import hashlib
+import uuid
 from models import PrettySiteSettings, APIToken
 
 class APIKey():
@@ -21,3 +22,9 @@ class APIKey():
             if tokenValue:
                 return True
         return False
+
+
+class Internals():
+
+    def generateUUID(self):
+        return uuid.uuid4()

@@ -282,3 +282,15 @@ class APIToken(db.Model):
        return False
 
 ## ---------------------------- Internal -------------------------------------------------
+class Internal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    UUID = db.Column(db.String, nullable=False)
+    Timestamp = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
+    Creator = db.Column(db.String, nullable=True)
+    Version = db.Column(db.String, nullable=False)
+
+
+    @staticmethod
+    def getInternals(id):
+        return Internal.query.with_entities(Internal.id, Internal.UUID, Internal.Timestamp, Internal.Creator, Internal.Version).first()
+

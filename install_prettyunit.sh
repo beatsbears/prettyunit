@@ -22,12 +22,15 @@ sleep 1
 python manage.py db upgrade
 sleep 5
 echo "[+] DB migrations complete"
-if [[ $1 == "-t" ]]
-    then
-    echo "[+] Adding test data to the database"
-    python manage.py create_test_data >logs/prettyunit.log 2>&1
-fi
-python manage.py set_default_settings >logs/prettyunit.log 2>&1
+## Docker seems to have trouble with this operator, I'll leave it out for now
+#if [[ $1 == "-t" ]]
+#    then
+#    echo "[+] Adding test data to the database"
+#    python manage.py create_test_data >logs/prettyunit.log 2>&1
+#fi
+python manage.py set_default_settings >logs/prettyunit.log
 echo "[+] Setup completed"
-echo "[+] Run 'python manage.py runserver' to start the PrettyUnit web server"
+#echo "[+] Run 'python manage.py runserver' to start the PrettyUnit web server"
+sleep 5
+python manage.py runserver --host 0.0.0.0
 
